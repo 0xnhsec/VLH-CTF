@@ -1,2 +1,2 @@
 # VLH-CTF
-Vulneralbilities Logic Homelabs - Capture The Flag
+Vulnerabilities Logic Homelabs - Capture The Flag
