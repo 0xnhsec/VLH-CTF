@@ -1,0 +1,122 @@
+# =============================================================================
+# VLH-CTF — ASLV manifest (single source of truth for the ASLV product line)
+# =============================================================================
+# Schema: CONTRACT.md §8 (see docs/manifest-schema.md).
+# Consumers:
+#   - tui/          — main menu (modes + modules), deploy targets, collector ports
+#   - humans/docs   — module map, port map, flag placement per module
+# The docker-compose generator (tools/gen-compose.mjs) carries its own hardcoded
+# ASLV service map (build contexts/targets/ports must stay in lockstep with this
+# file); DSLTV services are generated straight from dsltv-manifest.yaml.
+# =============================================================================
+
+version: 1
+project: vlh-ctf
+product_line: aslv
+
+# -----------------------------------------------------------------------------
+# Deployment modes = compose profiles.
+#   port           — the only host-facing lab port for that mode
+#   profile        — `docker compose --profile <profile>` selector
+#   collector_port — host-loopback activity/verify mgmt port the TUI polls
+#                    (full=18090, m1=18091, m2=18092, m3=18093, m4=18094,
+#                     m5=18095; CONTRACT §2). Extension beyond the CONTRACT §8
+#                    example so the TUI can seed its config defaults.
+# -----------------------------------------------------------------------------
+modes:
+  - id: full
+    name: Full-chain (all modules)
+    port: 18024
+    profile: full
+    collector_port: 18090
+  - id: m1
+    name: M1 Edge standalone
+    port: 18021
+    profile: m1
+    collector_port: 18091
+  - id: m2
+    name: M2 Portal standalone
+    port: 18022
+    profile: m2
+    collector_port: 18092
+  - id: m3
+    name: M3 App standalone
+    port: 18023
+    profile: m3
+    collector_port: 18093
+  - id: m4
+    name: M4 API standalone
+    port: 18025
+    profile: m4
+    collector_port: 18094
+  - id: m5
+    name: M5 Identity standalone
+    port: 18026
+    profile: m5
+    collector_port: 18095
+
+# -----------------------------------------------------------------------------
+# Modules (arch §5.1). m0 is the shared foundation: never host-exposed, no
+# flags of its own, only present as real services in `full` mode (in standalone
+# modes its collector/mail/auth duties are covered by stubs, CONTRACT §6).
+# flags[].archetype = flag placement strategy (arch §7.0).
+# -----------------------------------------------------------------------------
+modules:
+  - id: m0
+    codename: aslv-core
+    name: Core (shared foundation)
+    stack: [node, go, postgres]
+    classes: []
+    port: null
+    profile: null
+    flags: []
+  - id: m1
+    codename: aslv-edge
+    name: Edge / Infrastructure
+    stack: [nginx, go]
+    classes: [HTTP]
+    port: 18021
+    profile: m1
+    flags:
+      - {category: HTTP, archetype: location-locked}
+  - id: m2
+    codename: aslv-portal
+    name: Portal (public web app)
+    stack: [node, express]
+    classes: [CORS, CSRF]
+    port: 18022
+    profile: m2
+    flags:
+      - {category: CORS, archetype: event-verified}
+      - {category: CSRF, archetype: event-verified}
+  - id: m3
+    codename: aslv-app
+    name: Business App (Laravel)
+    stack: [php, laravel]
+    classes: [IDOR, BAC]
+    port: 18023
+    profile: m3
+    flags:
+      - {category: IDOR, archetype: resource-resident}
+      - {category: BAC, archetype: resource-resident}
+  - id: m4
+    codename: aslv-api
+    name: API Services
+    stack: [go]
+    classes: [API]
+    port: 18025
+    profile: m4
+    flags:
+      - {category: API, archetype: stage-gated}
+      - {category: API, archetype: resource-resident}
+  - id: m5
+    codename: aslv-identity
+    name: Identity Plane (SSO)
+    stack: [node, express]
+    classes: [JWT, AUTH, OAUTH]
+    port: 18026
+    profile: m5
+    flags:
+      - {category: JWT, archetype: identity-gated}
+      - {category: AUTH, archetype: identity-gated}
+      - {category: OAUTH, archetype: identity-gated}

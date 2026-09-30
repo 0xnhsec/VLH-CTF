@@ -1,0 +1,51 @@
+# VLH-CTF — ASLV M2 standalone vhost sidecar (nginx template).
+#
+# Rendered by the compose file via envsubst with these variables:
+#   LAB_PORT   host-facing port this sidecar binds (M2 standalone: 18022)
+#   APP_HOST   the portal app container (e.g. portal-std)
+#   MAIL_HOST  the stub mail container (e.g. stub-mail-2)
+#
+# L7 vhost routing is deliberate here (unlike the L4 dsltv sidecar): M2's
+# surfaces are CORS/CSRF, which need genuine origin separation via Host-based
+# vhosts, and nothing in M2 depends on raw-socket framing.
+
+server {
+    listen ${LAB_PORT};
+    server_name victim.aslv.lab www.aslv.lab portal.aslv.lab attacker.aslv.lab collector.aslv.lab;
+
+    location / {
+        proxy_pass http://${APP_HOST}:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        # trust edge (mirrors the M1 gateway): X-Forwarded-Host forwarded verbatim
+        proxy_set_header X-Forwarded-Host $http_x_forwarded_host;
+    }
+}
+
+server {
+    listen ${LAB_PORT};
+    server_name mail.aslv.lab;
+
+    location / {
+        proxy_pass http://${MAIL_HOST}:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+        proxy_set_header Host $http_host;
+    }
+}
+
+# everything else (localhost, unknown hosts) → the portal app so the module is
+# usable without editing /etc/hosts (the app dispatches by Host internally).
+server {
+    listen ${LAB_PORT} default_server;
+    server_name _;
+
+    location / {
+        proxy_pass http://${APP_HOST}:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+        proxy_set_header Host $http_host;
+    }
+}

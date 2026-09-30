@@ -1,0 +1,2780 @@
+# =============================================================================
+# VLH-CTF — docker-compose.yml  (GENERATED FILE — DO NOT EDIT)
+#
+# Regenerate:  cd tools && npm install && node gen-compose.mjs     (or: make compose)
+# Sources:     manifests/dsltv-manifest.yaml   (54 DSLTV subclasses)
+#              + hardcoded ASLV service map in tools/gen-compose.mjs
+#              (kept in lockstep with manifests/aslv-manifest.yaml)
+#
+# Profile map (CONTRACT §7):
+#   full                 ASLV full-chain mode .......... gateway :18024
+#   m1 m2 m3 m4 m5       ASLV standalone modules ....... :18021 :18022 :18023 :18025 :18026
+#   dsltv-<cat>-<slug>   one per DSLTV subclass (54) ... sidecar :8119
+#
+# EXCLUSIVITY (PRD FR-3 / FR-16): every DSLTV <slug>-edge sidecar binds host
+# port 8119 (and loopback collector port 18119), so only ONE dsltv-* profile
+# can be active at a time — a second `up` fails cleanly on the port binding
+# (Docker-native behavior, surfaced by the TUI, which tears the previous pair
+# down first). ASLV standalone profiles bind distinct 1802x ports and may
+# co-exist with each other, but do NOT run a module standalone profile together
+# with `full` — they share that module's data/registry volumes.
+#
+# Env interpolation (.env / .env.example):
+#   EDGE_MODE                   cl-te | te-cl | te-te  (edge-front desync flavor)
+#   POSTGRES_USER/PASSWORD/DB   M0 Postgres credentials (full mode)
+# =============================================================================
+
+name: vlh-ctf
+
+networks:
+  vlh:
+    name: "811911_vlh"
+
+volumes:
+  # ---- ASLV shared (full mode) ----
+  vlh-registry:   # shared ASLV flag registry — full mode only
+  # ---- ASLV per-module data + standalone registries ----
+  m1-data:   # ASLV m1 app data (SQLite — both modes, arch §6)
+  m2-data:   # ASLV m2 app data (SQLite — both modes, arch §6)
+  m3-data:   # ASLV m3 app data (SQLite — both modes, arch §6)
+  m4-data:   # ASLV m4 app data (SQLite — both modes, arch §6)
+  m5-data:   # ASLV m5 app data (SQLite — both modes, arch §6)
+  m1-registry:   # ASLV m1 flag registry — standalone mode
+  m2-registry:   # ASLV m2 flag registry — standalone mode
+  m3-registry:   # ASLV m3 flag registry — standalone mode
+  m4-registry:   # ASLV m4 flag registry — standalone mode
+  m5-registry:   # ASLV m5 flag registry — standalone mode
+  # ---- M0 collector / postgres ----
+  collector-data:   # M0 collector activity store
+  pg-data:   # Postgres data — full mode activity archive
+  # ---- DSLTV: one data + one registry volume per subclass (isolated, FR-15) ----
+  reflected-origin-data:   # dsltv reflected-origin app data (isolated, FR-15)
+  reflected-origin-registry:   # dsltv reflected-origin flag registry
+  null-origin-data:   # dsltv null-origin app data (isolated, FR-15)
+  null-origin-registry:   # dsltv null-origin flag registry
+  weak-origin-regex-data:   # dsltv weak-origin-regex app data (isolated, FR-15)
+  weak-origin-regex-registry:   # dsltv weak-origin-regex flag registry
+  subdomain-trust-data:   # dsltv subdomain-trust app data (isolated, FR-15)
+  subdomain-trust-registry:   # dsltv subdomain-trust flag registry
+  wildcard-creds-data:   # dsltv wildcard-creds app data (isolated, FR-15)
+  wildcard-creds-registry:   # dsltv wildcard-creds flag registry
+  missing-vary-data:   # dsltv missing-vary app data (isolated, FR-15)
+  missing-vary-registry:   # dsltv missing-vary flag registry
+  missing-token-data:   # dsltv missing-token app data (isolated, FR-15)
+  missing-token-registry:   # dsltv missing-token flag registry
+  content-type-bypass-data:   # dsltv content-type-bypass app data (isolated, FR-15)
+  content-type-bypass-registry:   # dsltv content-type-bypass flag registry
+  method-switch-data:   # dsltv method-switch app data (isolated, FR-15)
+  method-switch-registry:   # dsltv method-switch flag registry
+  existence-check-data:   # dsltv existence-check app data (isolated, FR-15)
+  existence-check-registry:   # dsltv existence-check flag registry
+  no-session-binding-data:   # dsltv no-session-binding app data (isolated, FR-15)
+  no-session-binding-registry:   # dsltv no-session-binding flag registry
+  same-site-none-data:   # dsltv same-site-none app data (isolated, FR-15)
+  same-site-none-registry:   # dsltv same-site-none flag registry
+  numeric-id-data:   # dsltv numeric-id app data (isolated, FR-15)
+  numeric-id-registry:   # dsltv numeric-id flag registry
+  write-delete-data:   # dsltv write-delete app data (isolated, FR-15)
+  write-delete-registry:   # dsltv write-delete flag registry
+  file-path-data:   # dsltv file-path app data (isolated, FR-15)
+  file-path-registry:   # dsltv file-path flag registry
+  vertical-esc-data:   # dsltv vertical-esc app data (isolated, FR-15)
+  vertical-esc-registry:   # dsltv vertical-esc flag registry
+  horizontal-esc-data:   # dsltv horizontal-esc app data (isolated, FR-15)
+  horizontal-esc-registry:   # dsltv horizontal-esc flag registry
+  role-param-tamper-data:   # dsltv role-param-tamper app data (isolated, FR-15)
+  role-param-tamper-registry:   # dsltv role-param-tamper flag registry
+  method-bypass-data:   # dsltv method-bypass app data (isolated, FR-15)
+  method-bypass-registry:   # dsltv method-bypass flag registry
+  cross-tenant-data:   # dsltv cross-tenant app data (isolated, FR-15)
+  cross-tenant-registry:   # dsltv cross-tenant flag registry
+  workflow-bypass-data:   # dsltv workflow-bypass app data (isolated, FR-15)
+  workflow-bypass-registry:   # dsltv workflow-bypass flag registry
+  mass-assign-data:   # dsltv mass-assign app data (isolated, FR-15)
+  mass-assign-registry:   # dsltv mass-assign flag registry
+  none-alg-data:   # dsltv none-alg app data (isolated, FR-15)
+  none-alg-registry:   # dsltv none-alg flag registry
+  weak-hmac-data:   # dsltv weak-hmac app data (isolated, FR-15)
+  weak-hmac-registry:   # dsltv weak-hmac flag registry
+  alg-confusion-data:   # dsltv alg-confusion app data (isolated, FR-15)
+  alg-confusion-registry:   # dsltv alg-confusion flag registry
+  jku-bypass-data:   # dsltv jku-bypass app data (isolated, FR-15)
+  jku-bypass-registry:   # dsltv jku-bypass flag registry
+  jwk-injection-data:   # dsltv jwk-injection app data (isolated, FR-15)
+  jwk-injection-registry:   # dsltv jwk-injection flag registry
+  kid-injection-data:   # dsltv kid-injection app data (isolated, FR-15)
+  kid-injection-registry:   # dsltv kid-injection flag registry
+  exp-not-checked-data:   # dsltv exp-not-checked app data (isolated, FR-15)
+  exp-not-checked-registry:   # dsltv exp-not-checked flag registry
+  redirect-uri-bypass-data:   # dsltv redirect-uri-bypass app data (isolated, FR-15)
+  redirect-uri-bypass-registry:   # dsltv redirect-uri-bypass flag registry
+  missing-state-data:   # dsltv missing-state app data (isolated, FR-15)
+  missing-state-registry:   # dsltv missing-state flag registry
+  pre-auth-linking-data:   # dsltv pre-auth-linking app data (isolated, FR-15)
+  pre-auth-linking-registry:   # dsltv pre-auth-linking flag registry
+  referer-code-leak-data:   # dsltv referer-code-leak app data (isolated, FR-15)
+  referer-code-leak-registry:   # dsltv referer-code-leak flag registry
+  implicit-grant-abuse-data:   # dsltv implicit-grant-abuse app data (isolated, FR-15)
+  implicit-grant-abuse-registry:   # dsltv implicit-grant-abuse flag registry
+  scope-creep-data:   # dsltv scope-creep app data (isolated, FR-15)
+  scope-creep-registry:   # dsltv scope-creep flag registry
+  no-pkce-data:   # dsltv no-pkce app data (isolated, FR-15)
+  no-pkce-registry:   # dsltv no-pkce flag registry
+  no-rate-limit-data:   # dsltv no-rate-limit app data (isolated, FR-15)
+  no-rate-limit-registry:   # dsltv no-rate-limit flag registry
+  reset-token-predictable-data:   # dsltv reset-token-predictable app data (isolated, FR-15)
+  reset-token-predictable-registry:   # dsltv reset-token-predictable flag registry
+  mfa-bypass-data:   # dsltv mfa-bypass app data (isolated, FR-15)
+  mfa-bypass-registry:   # dsltv mfa-bypass flag registry
+  session-fixation-data:   # dsltv session-fixation app data (isolated, FR-15)
+  session-fixation-registry:   # dsltv session-fixation flag registry
+  default-creds-data:   # dsltv default-creds app data (isolated, FR-15)
+  default-creds-registry:   # dsltv default-creds flag registry
+  smuggle-cl-te-data:   # dsltv smuggle-cl-te app data (isolated, FR-15)
+  smuggle-cl-te-registry:   # dsltv smuggle-cl-te flag registry
+  smuggle-te-cl-data:   # dsltv smuggle-te-cl app data (isolated, FR-15)
+  smuggle-te-cl-registry:   # dsltv smuggle-te-cl flag registry
+  smuggle-te-te-data:   # dsltv smuggle-te-te app data (isolated, FR-15)
+  smuggle-te-te-registry:   # dsltv smuggle-te-te flag registry
+  host-reset-poison-data:   # dsltv host-reset-poison app data (isolated, FR-15)
+  host-reset-poison-registry:   # dsltv host-reset-poison flag registry
+  host-routing-bypass-data:   # dsltv host-routing-bypass app data (isolated, FR-15)
+  host-routing-bypass-registry:   # dsltv host-routing-bypass flag registry
+  host-cache-poison-data:   # dsltv host-cache-poison app data (isolated, FR-15)
+  host-cache-poison-registry:   # dsltv host-cache-poison flag registry
+  bola-data:   # dsltv bola app data (isolated, FR-15)
+  bola-registry:   # dsltv bola flag registry
+  bfla-data:   # dsltv bfla app data (isolated, FR-15)
+  bfla-registry:   # dsltv bfla flag registry
+  bopla-data:   # dsltv bopla app data (isolated, FR-15)
+  bopla-registry:   # dsltv bopla flag registry
+  shadow-version-data:   # dsltv shadow-version app data (isolated, FR-15)
+  shadow-version-registry:   # dsltv shadow-version flag registry
+  mass-assign-esc-data:   # dsltv mass-assign-esc app data (isolated, FR-15)
+  mass-assign-esc-registry:   # dsltv mass-assign-esc flag registry
+  ssrf-internal-data:   # dsltv ssrf-internal app data (isolated, FR-15)
+  ssrf-internal-registry:   # dsltv ssrf-internal flag registry
+  sensitive-flow-data:   # dsltv sensitive-flow app data (isolated, FR-15)
+  sensitive-flow-registry:   # dsltv sensitive-flow flag registry
+
+services:
+  # ===========================================================================
+  # ASLV — FULL-CHAIN MODE (profile: full)
+  #
+  # One nginx gateway on :18024 routes by Host header (CONTRACT §4):
+  #   aslv.lab / www.aslv.lab -> portal   (+ /user/v1/ path prefix -> api)
+  #   *.aslv.lab (tenants)    -> app      auth.aslv.lab  -> identity
+  #   mail.aslv.lab           -> mailhog  collector.aslv.lab -> collector
+  #   attacker.aslv.lab       -> portal exploit-server vhost
+  #   edge.aslv.lab           -> edge backend (smuggling surface)
+  #   internal.aslv.lab       -> 404 (location-locked zone, deliberately unrouted)
+  #
+  # Every trust edge (M5->M3/M4, M2<->M3/M4, M2 forms, M1->M3/M4, M0<->M5/M3,
+  # M4->M3) is LIVE in this mode — no edge stubbed (FR-13).
+  # TUI collector mgmt binding: http://127.0.0.1:18090 (loopback only).
+  # ===========================================================================
+
+  # gateway — the only host-exposed lab port in full mode. The vhost routing
+  # conf is owned by the aslv-edge module (modules/aslv-edge/conf/gateway-full.conf).
+  # extra_hosts exists so any in-container absolute URL to a lab vhost resolves
+  # to 127.0.0.1 (routing itself is Host-header based).
+  gateway:
+    build:
+      context: "./modules/aslv-edge"
+      target: gateway-full
+    ports:
+      - "18024:80"
+    depends_on:
+      - edge-front
+      - portal
+      - app
+      - api
+      - identity
+      - mailhog
+    volumes:
+      - "./modules/aslv-edge/conf/gateway-full.conf:/etc/nginx/conf.d/default.conf:ro"
+    extra_hosts:
+      aslv.lab: "127.0.0.1"
+      www.aslv.lab: "127.0.0.1"
+      auth.aslv.lab: "127.0.0.1"
+      mail.aslv.lab: "127.0.0.1"
+      collector.aslv.lab: "127.0.0.1"
+      attacker.aslv.lab: "127.0.0.1"
+      edge.aslv.lab: "127.0.0.1"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - full
+
+  # edge-front — M1 raw-TCP front proxy. EDGE_MODE selects the desync flavor
+  # (cl-te | te-cl | te-te) via .env. Internal :8080 only, never host-exposed.
+  edge-front:
+    build:
+      context: "./modules/aslv-edge"
+      target: edgefront
+    environment:
+      EDGE_MODE: "${EDGE_MODE:-cl-te}"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - full
+
+  # edge-back — M1 raw-TCP backend. /internal/flag (location-locked,
+  # ASLV{HTTP-...}) lives here, unrouted at the gateway — reachable only via
+  # request smuggling (raw sockets, arch §8).
+  edge-back:
+    build:
+      context: "./modules/aslv-edge"
+      target: edgeback
+    environment:
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "m1-data:/data"
+      - "vlh-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - full
+
+  # portal — M2 Express (minimal, no CSRF middleware): login, profile,
+  # recovery-email change (CSRF surface), CORS-reflecting endpoints, exploit-
+  # server vhost (attacker.aslv.lab).
+  portal:
+    build: "./modules/aslv-portal"
+    environment:
+      LAB_DOMAIN: aslv.lab
+      ACTIVITY_SINK: "http://collector:8090/ingest"
+    volumes:
+      - "m2-data:/data"
+      - "vlh-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - full
+
+  # app — M3 Laravel, subdomain-per-tenant. Innocent private doc holds
+  # ASLV{IDOR-...} (resource-resident, carries pivot material); BAC horizontal
+  # + vertical -> ASLV{BAC-...}.
+  app:
+    build: "./modules/aslv-app"
+    environment:
+      LAB_DOMAIN: aslv.lab
+      ACTIVITY_SINK: "http://collector:8090/ingest"
+    volumes:
+      - "m3-data:/data"
+      - "vlh-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - full
+
+  # api — M4 Go REST, path-based /user/v1/{user}/... BOLA/BFLA/BOPLA composite.
+  # Stage-gated ASLV{API-...}: flag1 after mass-assignment escalation, flag2 at
+  # the claim-checked admin endpoint.
+  api:
+    build: "./modules/aslv-api"
+    environment:
+      LAB_DOMAIN: aslv.lab
+      ACTIVITY_SINK: "http://collector:8090/ingest"
+    volumes:
+      - "m4-data:/data"
+      - "vlh-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - full
+
+  # identity — M5 AS: sessions record auth_method provenance, password reset
+  # (predictable token), MFA surfaces, OAuth 2.0 AS + client, JWT issuing.
+  # Outbound mail goes over SMTP to mailhog:1025 (MailHog has no mail-creating
+  # HTTP API — identity POSTs via SMTP instead).
+  identity:
+    build: "./modules/aslv-identity"
+    environment:
+      LAB_DOMAIN: aslv.lab
+      ACTIVITY_SINK: "http://collector:8090/ingest"
+      SMTP_HOST: mailhog
+      SMTP_PORT: "1025"
+    volumes:
+      - "m5-data:/data"
+      - "vlh-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - full
+
+  # collector — M0 Go collector: POST /ingest (activity), GET /internal/activity
+  # (NDJSON), POST /exfil + GET /verify (event-verified dual-check mint for
+  # ASLV CORS/CSRF, CONTRACT §3). 127.0.0.1:18090 = TUI mgmt binding.
+  # DATABASE_URL = optional Postgres activity archive (full mode only).
+  collector:
+    build:
+      context: "./modules/aslv-core"
+      target: collector
+    environment:
+      DATABASE_URL: "postgres://${POSTGRES_USER:-vlh}:${POSTGRES_PASSWORD:-vlh}@postgres:5432/${POSTGRES_DB:-vlh}"
+      PORTAL_INTERNAL_URL: "http://portal:3000"
+    ports:
+      - "127.0.0.1:18090:8090"
+    volumes:
+      - "collector-data:/data"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - full
+
+  # postgres — M0 central store, FULL MODE ONLY (activity archive). Per-module
+  # app persistence stays SQLite on named volumes in BOTH modes (arch §6, v1
+  # interpretation — see docs/deployment.md). Internal :5432, never host-exposed.
+  postgres:
+    image: "postgres:16-alpine"
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER:-vlh}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-vlh}"
+      POSTGRES_DB: "${POSTGRES_DB:-vlh}"
+    volumes:
+      - "pg-data:/var/lib/postgresql/data"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - full
+
+  # mailhog — SMTP :1025 (identity posts here), UI :8025 reachable only via the
+  # mail.aslv.lab vhost through the gateway. Mail is a TOKEN carrier, never a
+  # flag carrier (CONTRACT §3).
+  mailhog:
+    image: "mailhog/mailhog:v1.0.1"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - full
+
+  # ===========================================================================
+  # ASLV STANDALONE MODES (profiles m1..m5)
+  #
+  # One module + aslv-core stubs (stub-auth signs dev tokens, stub-portal
+  # serves static pages, stub-mail replaces MailHog — CONTRACT §6). Each mode
+  # binds its own 1802x port and its loopback collector-mgmt port (18091..18095)
+  # which the TUI polls for the activity table:
+  #   m1 -> http://127.0.0.1:18091/internal/activity (Host: edge.aslv.lab)
+  #   m2 -> http://127.0.0.1:18092/internal/activity (Host: collector.aslv.lab)
+  #   m3 -> http://127.0.0.1:18093/internal/activity (Host: collector.aslv.lab)
+  #   m4 -> http://127.0.0.1:18094/internal/activity (Host: collector.aslv.lab)
+  #   m5 -> http://127.0.0.1:18095/internal/activity (Host: collector.aslv.lab)
+  #
+  # Standalone profiles may co-exist with each other (distinct ports) but must
+  # NOT run alongside `full` — the module shares its data/registry volumes
+  # with its full-mode twin.
+  # ===========================================================================
+
+  # ---- profile m1: ASLV EDGE ----------------------------------------------
+  # M1 standalone IS the edge: its own gateway (target gateway-standalone)
+  # binds :18021 and routes the vhosts itself — no extra sidecar (CONTRACT §4).
+  # 127.0.0.1:18091 = TUI activity mgmt (Host: edge.aslv.lab).
+  edge-gateway-std:
+    build:
+      context: "./modules/aslv-edge"
+      target: gateway-standalone
+    ports:
+      - "18021:80"
+      - "127.0.0.1:18091:80"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - m1
+
+  # edge-front-std — raw-TCP front proxy; EDGE_MODE (cl-te|te-cl|te-te) via .env.
+  edge-front-std:
+    build:
+      context: "./modules/aslv-edge"
+      target: edgefront
+    environment:
+      EDGE_MODE: "${EDGE_MODE:-cl-te}"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - m1
+
+  # edge-back-std — location-locked /internal/flag lives here. Standalone uses
+  # its own m1-registry volume (no shared vlh-registry outside full mode).
+  edge-back-std:
+    build:
+      context: "./modules/aslv-edge"
+      target: edgeback
+    environment:
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "m1-data:/data"
+      - "m1-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - m1
+
+  # stub-auth-1 — aslv-core "stubs" image (one image, two services), STUB=auth.
+  stub-auth-1:
+    build:
+      context: "./modules/aslv-core"
+      target: stubs
+    environment:
+      STUB: auth
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - m1
+
+  # stub-portal-1 — same "stubs" image, STUB=portal (static pages).
+  stub-portal-1:
+    build:
+      context: "./modules/aslv-core"
+      target: stubs
+    environment:
+      STUB: portal
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - m1
+
+  # stub-mail-1 — aslv-core "stub-mail" target: standalone mailbox UI + sink.
+  stub-mail-1:
+    build:
+      context: "./modules/aslv-core"
+      target: stub-mail
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - m1
+
+  # ---- profile m2: ASLV PORTAL --------------------------------------------
+  # nginx sidecar binds :18022 and does vhost routing (victim.aslv.lab /
+  # attacker.aslv.lab / collector.aslv.lab / mail.aslv.lab — CONTRACT §4), so
+  # origins are genuine for CORS/CSRF with M1 fully offline.
+  # portal-std — M2 standalone shape (STANDALONE=1: embedded mini-API +
+  # mini-collector, no M3/M4 dependency).
+  portal-std:
+    build: "./modules/aslv-portal"
+    environment:
+      STANDALONE: "1"
+      LAB_DOMAIN: aslv.lab
+    volumes:
+      - "m2-data:/data"
+      - "m2-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - m2
+
+  # portal-edge-std — nginx sidecar; template owned by aslv-portal.
+  # 127.0.0.1:18092 = TUI activity mgmt (Host: collector.aslv.lab).
+  portal-edge-std:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "80"
+      APP_HOST: portal-std
+      MAIL_HOST: stub-mail-2
+    volumes:
+      - "./modules/aslv-portal/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "18022:80"
+      - "127.0.0.1:18092:80"
+    depends_on:
+      - portal-std
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - m2
+
+  # stub-auth-2 — aslv-core "stubs" image, STUB=auth.
+  stub-auth-2:
+    build:
+      context: "./modules/aslv-core"
+      target: stubs
+    environment:
+      STUB: auth
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - m2
+
+  # stub-mail-2 — aslv-core "stub-mail" target.
+  stub-mail-2:
+    build:
+      context: "./modules/aslv-core"
+      target: stub-mail
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - m2
+
+  # ---- profile m3: ASLV APP -----------------------------------------------
+  # Laravel app behind its own nginx sidecar on :18023.
+  # app-std — standalone shape (stub-auth replaces M5, stub-mail replaces M0).
+  app-std:
+    build: "./modules/aslv-app"
+    environment:
+      STANDALONE: "1"
+      LAB_DOMAIN: aslv.lab
+    volumes:
+      - "m3-data:/data"
+      - "m3-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - m3
+
+  # app-edge-std — nginx sidecar; template owned by aslv-app.
+  # 127.0.0.1:18093 = TUI activity mgmt (Host: collector.aslv.lab).
+  app-edge-std:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "80"
+      APP_HOST: app-std
+    volumes:
+      - "./modules/aslv-app/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "18023:80"
+      - "127.0.0.1:18093:80"
+    depends_on:
+      - app-std
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - m3
+
+  # stub-auth-3 — aslv-core "stubs" image, STUB=auth.
+  stub-auth-3:
+    build:
+      context: "./modules/aslv-core"
+      target: stubs
+    environment:
+      STUB: auth
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - m3
+
+  # stub-mail-3 — aslv-core "stub-mail" target.
+  stub-mail-3:
+    build:
+      context: "./modules/aslv-core"
+      target: stub-mail
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - m3
+
+  # ---- profile m4: ASLV API ------------------------------------------------
+  # Go REST API behind its own nginx sidecar on :18025 (stub-auth signs dev
+  # tokens; no mail needed in m4).
+  api-std:
+    build: "./modules/aslv-api"
+    environment:
+      STANDALONE: "1"
+      LAB_DOMAIN: aslv.lab
+    volumes:
+      - "m4-data:/data"
+      - "m4-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - m4
+
+  # api-edge-std — nginx sidecar; template owned by aslv-api.
+  # 127.0.0.1:18094 = TUI activity mgmt (Host: collector.aslv.lab).
+  api-edge-std:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "80"
+      APP_HOST: api-std
+      AUTH_HOST: stub-auth-4
+    volumes:
+      - "./modules/aslv-api/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "18025:80"
+      - "127.0.0.1:18094:80"
+    depends_on:
+      - api-std
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - m4
+
+  # stub-auth-4 — aslv-core "stubs" image, STUB=auth.
+  stub-auth-4:
+    build:
+      context: "./modules/aslv-core"
+      target: stubs
+    environment:
+      STUB: auth
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - m4
+
+  # ---- profile m5: ASLV IDENTITY --------------------------------------------
+  # Node/Express AS behind its own nginx sidecar on :18026.
+  # identity-std — standalone shape; outbound mail goes over SMTP to
+  # stub-mail-5:1025 (stub-portal-5 replaces the M2 portal surface).
+  identity-std:
+    build: "./modules/aslv-identity"
+    environment:
+      STANDALONE: "1"
+      LAB_DOMAIN: aslv.lab
+      SMTP_HOST: stub-mail-5
+      SMTP_PORT: "1025"
+    volumes:
+      - "m5-data:/data"
+      - "m5-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - m5
+
+  # identity-edge-std — nginx sidecar; template owned by aslv-identity.
+  # 127.0.0.1:18095 = TUI activity mgmt (Host: collector.aslv.lab).
+  identity-edge-std:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "80"
+      APP_HOST: identity-std
+      MAIL_HOST: stub-mail-5
+      PORTAL_HOST: stub-portal-5
+    volumes:
+      - "./modules/aslv-identity/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "18026:80"
+      - "127.0.0.1:18095:80"
+    depends_on:
+      - identity-std
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - m5
+
+  # stub-portal-5 — aslv-core "stubs" image, STUB=portal.
+  stub-portal-5:
+    build:
+      context: "./modules/aslv-core"
+      target: stubs
+    environment:
+      STUB: portal
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - m5
+
+  # stub-mail-5 — aslv-core "stub-mail" target (identity SMTP sink).
+  stub-mail-5:
+    build:
+      context: "./modules/aslv-core"
+      target: stub-mail
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - m5
+
+  # ===========================================================================
+  # DSLTV — STANDALONE SUBCLASSES (profiles dsltv-<category>-<slug>, 54 total)
+  #
+  # Every subclass = <slug>-app + <slug>-edge pair, fully self-contained
+  # (own SQLite, own seed, zero dependency on other subclasses or ASLV — FR-15).
+  #
+  # The sidecar is a RAW L4 pass-through (dsltv/base/sidecar/nginx.conf.template):
+  # 8119 -> <slug>-app:8080. Vhost routing (victim/attacker/collector/mail
+  # .target.lab) happens INSIDE the app by Host header, so origins are genuinely
+  # distinct and HTTP framing is never normalized (NFR-5). The app container is
+  # never directly exposed.
+  #
+  # EXCLUSIVITY (PRD FR-3 / FR-16): ALL <slug>-edge sidecars bind the SAME host
+  # ports — 8119 (lab) + 127.0.0.1:18119 (collector mgmt). Only ONE dsltv-*
+  # profile can be active at a time: Docker rejects the second port binding with
+  # a clean error, which the TUI surfaces; the TUI tears the previous pair down
+  # before starting a new one. This is by design.
+  #
+  # TUI polls the ACTIVE subclass at http://127.0.0.1:18119/internal/activity
+  # and /verify with Host: collector.target.lab.
+  # ===========================================================================
+
+  # ---- cors (CORS) --------------------------------------------------------
+
+  # CORS / ReflectedOrigin — event-verified/cors, difficulty low
+  reflected-origin-app:
+    build: "./dsltv/cors/reflected-origin"
+    environment:
+      SUBCLASS: reflected-origin
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "reflected-origin-data:/data"
+      - "reflected-origin-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-cors-reflected-origin
+
+  reflected-origin-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: reflected-origin-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - reflected-origin-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-cors-reflected-origin
+
+  # CORS / NullOrigin — event-verified/cors, difficulty low
+  null-origin-app:
+    build: "./dsltv/cors/null-origin"
+    environment:
+      SUBCLASS: null-origin
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "null-origin-data:/data"
+      - "null-origin-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-cors-null-origin
+
+  null-origin-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: null-origin-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - null-origin-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-cors-null-origin
+
+  # CORS / WeakOriginRegex — event-verified/cors, difficulty medium
+  weak-origin-regex-app:
+    build: "./dsltv/cors/weak-origin-regex"
+    environment:
+      SUBCLASS: weak-origin-regex
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "weak-origin-regex-data:/data"
+      - "weak-origin-regex-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-cors-weak-origin-regex
+
+  weak-origin-regex-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: weak-origin-regex-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - weak-origin-regex-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-cors-weak-origin-regex
+
+  # CORS / SubdomainTrust — event-verified/cors, difficulty medium
+  subdomain-trust-app:
+    build: "./dsltv/cors/subdomain-trust"
+    environment:
+      SUBCLASS: subdomain-trust
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "subdomain-trust-data:/data"
+      - "subdomain-trust-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-cors-subdomain-trust
+
+  subdomain-trust-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: subdomain-trust-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - subdomain-trust-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-cors-subdomain-trust
+
+  # CORS / WildcardCreds — event-verified/cors, difficulty medium — CUT CANDIDATE
+  wildcard-creds-app:
+    build: "./dsltv/cors/wildcard-creds"
+    environment:
+      SUBCLASS: wildcard-creds
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "wildcard-creds-data:/data"
+      - "wildcard-creds-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-cors-wildcard-creds
+
+  wildcard-creds-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: wildcard-creds-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - wildcard-creds-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-cors-wildcard-creds
+
+  # CORS / MissingVary — event-verified/cors, difficulty high — CUT CANDIDATE
+  missing-vary-app:
+    build: "./dsltv/cors/missing-vary"
+    environment:
+      SUBCLASS: missing-vary
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "missing-vary-data:/data"
+      - "missing-vary-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-cors-missing-vary
+
+  missing-vary-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: missing-vary-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - missing-vary-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-cors-missing-vary
+
+  # ---- csrf (CSRF) --------------------------------------------------------
+
+  # CSRF / MissingToken — event-verified/csrf, difficulty low
+  missing-token-app:
+    build: "./dsltv/csrf/missing-token"
+    environment:
+      SUBCLASS: missing-token
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "missing-token-data:/data"
+      - "missing-token-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-csrf-missing-token
+
+  missing-token-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: missing-token-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - missing-token-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-csrf-missing-token
+
+  # CSRF / ContentTypeBypass — event-verified/csrf, difficulty low
+  content-type-bypass-app:
+    build: "./dsltv/csrf/content-type-bypass"
+    environment:
+      SUBCLASS: content-type-bypass
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "content-type-bypass-data:/data"
+      - "content-type-bypass-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-csrf-content-type-bypass
+
+  content-type-bypass-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: content-type-bypass-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - content-type-bypass-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-csrf-content-type-bypass
+
+  # CSRF / MethodSwitch — event-verified/csrf, difficulty low
+  method-switch-app:
+    build: "./dsltv/csrf/method-switch"
+    environment:
+      SUBCLASS: method-switch
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "method-switch-data:/data"
+      - "method-switch-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-csrf-method-switch
+
+  method-switch-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: method-switch-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - method-switch-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-csrf-method-switch
+
+  # CSRF / ExistenceCheck — event-verified/csrf, difficulty medium
+  existence-check-app:
+    build: "./dsltv/csrf/existence-check"
+    environment:
+      SUBCLASS: existence-check
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "existence-check-data:/data"
+      - "existence-check-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-csrf-existence-check
+
+  existence-check-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: existence-check-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - existence-check-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-csrf-existence-check
+
+  # CSRF / NoSessionBinding — event-verified/csrf, difficulty medium
+  no-session-binding-app:
+    build: "./dsltv/csrf/no-session-binding"
+    environment:
+      SUBCLASS: no-session-binding
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "no-session-binding-data:/data"
+      - "no-session-binding-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-csrf-no-session-binding
+
+  no-session-binding-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: no-session-binding-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - no-session-binding-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-csrf-no-session-binding
+
+  # CSRF / SameSiteNone — event-verified/csrf, difficulty low
+  same-site-none-app:
+    build: "./dsltv/csrf/same-site-none"
+    environment:
+      SUBCLASS: same-site-none
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "same-site-none-data:/data"
+      - "same-site-none-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-csrf-same-site-none
+
+  same-site-none-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: same-site-none-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - same-site-none-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-csrf-same-site-none
+
+  # ---- idor (IDOR) --------------------------------------------------------
+
+  # IDOR / NumericId — resource-resident, difficulty low
+  numeric-id-app:
+    build: "./dsltv/idor/numeric-id"
+    environment:
+      SUBCLASS: numeric-id
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "numeric-id-data:/data"
+      - "numeric-id-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-idor-numeric-id
+
+  numeric-id-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: numeric-id-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - numeric-id-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-idor-numeric-id
+
+  # IDOR / WriteDelete — resource-resident, difficulty medium
+  write-delete-app:
+    build: "./dsltv/idor/write-delete"
+    environment:
+      SUBCLASS: write-delete
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "write-delete-data:/data"
+      - "write-delete-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-idor-write-delete
+
+  write-delete-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: write-delete-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - write-delete-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-idor-write-delete
+
+  # IDOR / FilePath — resource-resident, difficulty medium
+  file-path-app:
+    build: "./dsltv/idor/file-path"
+    environment:
+      SUBCLASS: file-path
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "file-path-data:/data"
+      - "file-path-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-idor-file-path
+
+  file-path-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: file-path-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - file-path-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-idor-file-path
+
+  # ---- bac (BAC) ----------------------------------------------------------
+
+  # BAC / VerticalEsc — resource-resident, difficulty medium
+  vertical-esc-app:
+    build: "./dsltv/bac/vertical-esc"
+    environment:
+      SUBCLASS: vertical-esc
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "vertical-esc-data:/data"
+      - "vertical-esc-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-bac-vertical-esc
+
+  vertical-esc-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: vertical-esc-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - vertical-esc-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-bac-vertical-esc
+
+  # BAC / HorizontalEsc — resource-resident, difficulty low
+  horizontal-esc-app:
+    build: "./dsltv/bac/horizontal-esc"
+    environment:
+      SUBCLASS: horizontal-esc
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "horizontal-esc-data:/data"
+      - "horizontal-esc-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-bac-horizontal-esc
+
+  horizontal-esc-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: horizontal-esc-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - horizontal-esc-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-bac-horizontal-esc
+
+  # BAC / RoleParamTamper — resource-resident, difficulty medium
+  role-param-tamper-app:
+    build: "./dsltv/bac/role-param-tamper"
+    environment:
+      SUBCLASS: role-param-tamper
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "role-param-tamper-data:/data"
+      - "role-param-tamper-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-bac-role-param-tamper
+
+  role-param-tamper-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: role-param-tamper-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - role-param-tamper-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-bac-role-param-tamper
+
+  # BAC / MethodBypass — resource-resident, difficulty medium
+  method-bypass-app:
+    build: "./dsltv/bac/method-bypass"
+    environment:
+      SUBCLASS: method-bypass
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "method-bypass-data:/data"
+      - "method-bypass-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-bac-method-bypass
+
+  method-bypass-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: method-bypass-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - method-bypass-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-bac-method-bypass
+
+  # BAC / CrossTenant — resource-resident, difficulty high
+  cross-tenant-app:
+    build: "./dsltv/bac/cross-tenant"
+    environment:
+      SUBCLASS: cross-tenant
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "cross-tenant-data:/data"
+      - "cross-tenant-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-bac-cross-tenant
+
+  cross-tenant-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: cross-tenant-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - cross-tenant-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-bac-cross-tenant
+
+  # BAC / WorkflowBypass — resource-resident, difficulty high
+  workflow-bypass-app:
+    build: "./dsltv/bac/workflow-bypass"
+    environment:
+      SUBCLASS: workflow-bypass
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "workflow-bypass-data:/data"
+      - "workflow-bypass-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-bac-workflow-bypass
+
+  workflow-bypass-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: workflow-bypass-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - workflow-bypass-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-bac-workflow-bypass
+
+  # BAC / MassAssign — resource-resident, difficulty high
+  mass-assign-app:
+    build: "./dsltv/bac/mass-assign"
+    environment:
+      SUBCLASS: mass-assign
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "mass-assign-data:/data"
+      - "mass-assign-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-bac-mass-assign
+
+  mass-assign-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: mass-assign-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - mass-assign-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-bac-mass-assign
+
+  # ---- jwt (JWT) ----------------------------------------------------------
+
+  # JWT / NoneAlg — identity-gated, difficulty low
+  none-alg-app:
+    build: "./dsltv/jwt/none-alg"
+    environment:
+      SUBCLASS: none-alg
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "none-alg-data:/data"
+      - "none-alg-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-jwt-none-alg
+
+  none-alg-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: none-alg-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - none-alg-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-jwt-none-alg
+
+  # JWT / WeakHMAC — identity-gated, difficulty low
+  weak-hmac-app:
+    build: "./dsltv/jwt/weak-hmac"
+    environment:
+      SUBCLASS: weak-hmac
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "weak-hmac-data:/data"
+      - "weak-hmac-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-jwt-weak-hmac
+
+  weak-hmac-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: weak-hmac-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - weak-hmac-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-jwt-weak-hmac
+
+  # JWT / AlgConfusion — identity-gated, difficulty medium
+  alg-confusion-app:
+    build: "./dsltv/jwt/alg-confusion"
+    environment:
+      SUBCLASS: alg-confusion
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "alg-confusion-data:/data"
+      - "alg-confusion-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-jwt-alg-confusion
+
+  alg-confusion-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: alg-confusion-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - alg-confusion-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-jwt-alg-confusion
+
+  # JWT / JkuBypass — identity-gated, difficulty high
+  jku-bypass-app:
+    build: "./dsltv/jwt/jku-bypass"
+    environment:
+      SUBCLASS: jku-bypass
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "jku-bypass-data:/data"
+      - "jku-bypass-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-jwt-jku-bypass
+
+  jku-bypass-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: jku-bypass-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - jku-bypass-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-jwt-jku-bypass
+
+  # JWT / JwkInjection — identity-gated, difficulty high
+  jwk-injection-app:
+    build: "./dsltv/jwt/jwk-injection"
+    environment:
+      SUBCLASS: jwk-injection
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "jwk-injection-data:/data"
+      - "jwk-injection-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-jwt-jwk-injection
+
+  jwk-injection-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: jwk-injection-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - jwk-injection-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-jwt-jwk-injection
+
+  # JWT / KidInjection — identity-gated, difficulty high
+  kid-injection-app:
+    build: "./dsltv/jwt/kid-injection"
+    environment:
+      SUBCLASS: kid-injection
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "kid-injection-data:/data"
+      - "kid-injection-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-jwt-kid-injection
+
+  kid-injection-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: kid-injection-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - kid-injection-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-jwt-kid-injection
+
+  # JWT / ExpNotChecked — identity-gated, difficulty medium
+  exp-not-checked-app:
+    build: "./dsltv/jwt/exp-not-checked"
+    environment:
+      SUBCLASS: exp-not-checked
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "exp-not-checked-data:/data"
+      - "exp-not-checked-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-jwt-exp-not-checked
+
+  exp-not-checked-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: exp-not-checked-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - exp-not-checked-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-jwt-exp-not-checked
+
+  # ---- oauth (OAuth) ------------------------------------------------------
+
+  # OAuth / RedirectUriBypass — identity-gated, difficulty medium
+  redirect-uri-bypass-app:
+    build: "./dsltv/oauth/redirect-uri-bypass"
+    environment:
+      SUBCLASS: redirect-uri-bypass
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "redirect-uri-bypass-data:/data"
+      - "redirect-uri-bypass-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-oauth-redirect-uri-bypass
+
+  redirect-uri-bypass-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: redirect-uri-bypass-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - redirect-uri-bypass-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-oauth-redirect-uri-bypass
+
+  # OAuth / MissingState — identity-gated, difficulty medium
+  missing-state-app:
+    build: "./dsltv/oauth/missing-state"
+    environment:
+      SUBCLASS: missing-state
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "missing-state-data:/data"
+      - "missing-state-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-oauth-missing-state
+
+  missing-state-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: missing-state-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - missing-state-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-oauth-missing-state
+
+  # OAuth / PreAuthLinking — identity-gated, difficulty high
+  pre-auth-linking-app:
+    build: "./dsltv/oauth/pre-auth-linking"
+    environment:
+      SUBCLASS: pre-auth-linking
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "pre-auth-linking-data:/data"
+      - "pre-auth-linking-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-oauth-pre-auth-linking
+
+  pre-auth-linking-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: pre-auth-linking-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - pre-auth-linking-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-oauth-pre-auth-linking
+
+  # OAuth / RefererCodeLeak — identity-gated, difficulty medium
+  referer-code-leak-app:
+    build: "./dsltv/oauth/referer-code-leak"
+    environment:
+      SUBCLASS: referer-code-leak
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "referer-code-leak-data:/data"
+      - "referer-code-leak-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-oauth-referer-code-leak
+
+  referer-code-leak-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: referer-code-leak-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - referer-code-leak-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-oauth-referer-code-leak
+
+  # OAuth / ImplicitGrantAbuse — identity-gated, difficulty medium
+  implicit-grant-abuse-app:
+    build: "./dsltv/oauth/implicit-grant-abuse"
+    environment:
+      SUBCLASS: implicit-grant-abuse
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "implicit-grant-abuse-data:/data"
+      - "implicit-grant-abuse-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-oauth-implicit-grant-abuse
+
+  implicit-grant-abuse-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: implicit-grant-abuse-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - implicit-grant-abuse-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-oauth-implicit-grant-abuse
+
+  # OAuth / ScopeCreep — identity-gated, difficulty high
+  scope-creep-app:
+    build: "./dsltv/oauth/scope-creep"
+    environment:
+      SUBCLASS: scope-creep
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "scope-creep-data:/data"
+      - "scope-creep-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-oauth-scope-creep
+
+  scope-creep-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: scope-creep-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - scope-creep-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-oauth-scope-creep
+
+  # OAuth / NoPkce — identity-gated, difficulty medium
+  no-pkce-app:
+    build: "./dsltv/oauth/no-pkce"
+    environment:
+      SUBCLASS: no-pkce
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "no-pkce-data:/data"
+      - "no-pkce-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-oauth-no-pkce
+
+  no-pkce-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: no-pkce-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - no-pkce-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-oauth-no-pkce
+
+  # ---- auth (AUTH) --------------------------------------------------------
+
+  # AUTH / NoRateLimit — identity-gated, difficulty low
+  no-rate-limit-app:
+    build: "./dsltv/auth/no-rate-limit"
+    environment:
+      SUBCLASS: no-rate-limit
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "no-rate-limit-data:/data"
+      - "no-rate-limit-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-auth-no-rate-limit
+
+  no-rate-limit-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: no-rate-limit-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - no-rate-limit-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-auth-no-rate-limit
+
+  # AUTH / ResetTokenPredictable — identity-gated, difficulty high
+  reset-token-predictable-app:
+    build: "./dsltv/auth/reset-token-predictable"
+    environment:
+      SUBCLASS: reset-token-predictable
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "reset-token-predictable-data:/data"
+      - "reset-token-predictable-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-auth-reset-token-predictable
+
+  reset-token-predictable-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: reset-token-predictable-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - reset-token-predictable-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-auth-reset-token-predictable
+
+  # AUTH / MfaBypass — identity-gated, difficulty medium
+  mfa-bypass-app:
+    build: "./dsltv/auth/mfa-bypass"
+    environment:
+      SUBCLASS: mfa-bypass
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "mfa-bypass-data:/data"
+      - "mfa-bypass-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-auth-mfa-bypass
+
+  mfa-bypass-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: mfa-bypass-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - mfa-bypass-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-auth-mfa-bypass
+
+  # AUTH / SessionFixation — identity-gated, difficulty medium
+  session-fixation-app:
+    build: "./dsltv/auth/session-fixation"
+    environment:
+      SUBCLASS: session-fixation
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "session-fixation-data:/data"
+      - "session-fixation-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-auth-session-fixation
+
+  session-fixation-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: session-fixation-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - session-fixation-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-auth-session-fixation
+
+  # AUTH / DefaultCreds — resource-resident, difficulty low
+  default-creds-app:
+    build: "./dsltv/auth/default-creds"
+    environment:
+      SUBCLASS: default-creds
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "default-creds-data:/data"
+      - "default-creds-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-auth-default-creds
+
+  default-creds-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: default-creds-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - default-creds-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-auth-default-creds
+
+  # ---- http (HTTP) --------------------------------------------------------
+
+  # HTTP / SmuggleClTe — location-locked, difficulty high
+  smuggle-cl-te-app:
+    build: "./dsltv/http/smuggle-cl-te"
+    environment:
+      SUBCLASS: smuggle-cl-te
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "smuggle-cl-te-data:/data"
+      - "smuggle-cl-te-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-http-smuggle-cl-te
+
+  smuggle-cl-te-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: smuggle-cl-te-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - smuggle-cl-te-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-http-smuggle-cl-te
+
+  # HTTP / SmuggleTeCl — location-locked, difficulty high
+  smuggle-te-cl-app:
+    build: "./dsltv/http/smuggle-te-cl"
+    environment:
+      SUBCLASS: smuggle-te-cl
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "smuggle-te-cl-data:/data"
+      - "smuggle-te-cl-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-http-smuggle-te-cl
+
+  smuggle-te-cl-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: smuggle-te-cl-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - smuggle-te-cl-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-http-smuggle-te-cl
+
+  # HTTP / SmuggleTeTe — location-locked, difficulty critical
+  smuggle-te-te-app:
+    build: "./dsltv/http/smuggle-te-te"
+    environment:
+      SUBCLASS: smuggle-te-te
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "smuggle-te-te-data:/data"
+      - "smuggle-te-te-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-http-smuggle-te-te
+
+  smuggle-te-te-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: smuggle-te-te-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - smuggle-te-te-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-http-smuggle-te-te
+
+  # HTTP / HostResetPoison — location-locked, difficulty high
+  host-reset-poison-app:
+    build: "./dsltv/http/host-reset-poison"
+    environment:
+      SUBCLASS: host-reset-poison
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "host-reset-poison-data:/data"
+      - "host-reset-poison-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-http-host-reset-poison
+
+  host-reset-poison-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: host-reset-poison-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - host-reset-poison-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-http-host-reset-poison
+
+  # HTTP / HostRoutingBypass — location-locked, difficulty medium
+  host-routing-bypass-app:
+    build: "./dsltv/http/host-routing-bypass"
+    environment:
+      SUBCLASS: host-routing-bypass
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "host-routing-bypass-data:/data"
+      - "host-routing-bypass-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-http-host-routing-bypass
+
+  host-routing-bypass-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: host-routing-bypass-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - host-routing-bypass-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-http-host-routing-bypass
+
+  # HTTP / HostCachePoison — location-locked, difficulty critical — CUT CANDIDATE
+  host-cache-poison-app:
+    build: "./dsltv/http/host-cache-poison"
+    environment:
+      SUBCLASS: host-cache-poison
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "host-cache-poison-data:/data"
+      - "host-cache-poison-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-http-host-cache-poison
+
+  host-cache-poison-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: host-cache-poison-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - host-cache-poison-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-http-host-cache-poison
+
+  # ---- api (API) ----------------------------------------------------------
+
+  # API / Bola — resource-resident, difficulty low
+  bola-app:
+    build: "./dsltv/api/bola"
+    environment:
+      SUBCLASS: bola
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "bola-data:/data"
+      - "bola-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-api-bola
+
+  bola-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: bola-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - bola-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-api-bola
+
+  # API / Bfla — resource-resident, difficulty low
+  bfla-app:
+    build: "./dsltv/api/bfla"
+    environment:
+      SUBCLASS: bfla
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "bfla-data:/data"
+      - "bfla-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-api-bfla
+
+  bfla-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: bfla-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - bfla-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-api-bfla
+
+  # API / Bopla — resource-resident, difficulty medium
+  bopla-app:
+    build: "./dsltv/api/bopla"
+    environment:
+      SUBCLASS: bopla
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "bopla-data:/data"
+      - "bopla-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-api-bopla
+
+  bopla-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: bopla-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - bopla-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-api-bopla
+
+  # API / ShadowVersion — resource-resident, difficulty medium
+  shadow-version-app:
+    build: "./dsltv/api/shadow-version"
+    environment:
+      SUBCLASS: shadow-version
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "shadow-version-data:/data"
+      - "shadow-version-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-api-shadow-version
+
+  shadow-version-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: shadow-version-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - shadow-version-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-api-shadow-version
+
+  # API / MassAssignEsc — stage-gated, difficulty high
+  mass-assign-esc-app:
+    build: "./dsltv/api/mass-assign-esc"
+    environment:
+      SUBCLASS: mass-assign-esc
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "mass-assign-esc-data:/data"
+      - "mass-assign-esc-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-api-mass-assign-esc
+
+  mass-assign-esc-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: mass-assign-esc-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - mass-assign-esc-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-api-mass-assign-esc
+
+  # API / SsrfInternal — location-locked, difficulty high
+  ssrf-internal-app:
+    build: "./dsltv/api/ssrf-internal"
+    environment:
+      SUBCLASS: ssrf-internal
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "ssrf-internal-data:/data"
+      - "ssrf-internal-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-api-ssrf-internal
+
+  ssrf-internal-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: ssrf-internal-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - ssrf-internal-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-api-ssrf-internal
+
+  # API / SensitiveFlow — stage-gated, difficulty medium
+  sensitive-flow-app:
+    build: "./dsltv/api/sensitive-flow"
+    environment:
+      SUBCLASS: sensitive-flow
+      LAB_DOMAIN: target.lab
+      REGISTRY_DIR: "/registry"
+    volumes:
+      - "sensitive-flow-data:/data"
+      - "sensitive-flow-registry:/registry"
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-api-sensitive-flow
+
+  sensitive-flow-edge:
+    image: "nginx:1.27-alpine"
+    command: "/bin/sh -c \"envsubst '$$LAB_PORT $$APP_HOST $$AUTH_HOST $$MAIL_HOST $$PORTAL_HOST' < /tpl/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'\""
+    environment:
+      LAB_PORT: "8119"
+      APP_HOST: sensitive-flow-app
+    volumes:
+      - "./dsltv/base/sidecar/nginx.conf.template:/tpl/nginx.conf.template:ro"
+    ports:
+      - "8119:8119"
+      - "127.0.0.1:18119:8119"
+    depends_on:
+      - sensitive-flow-app
+    networks:
+      - vlh
+    labels:
+      811911.vlh: "1"
+    profiles:
+      - dsltv-api-sensitive-flow
+
+# ==== end of generated file ====

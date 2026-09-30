@@ -1,0 +1,44 @@
+worker_processes auto;
+error_log /dev/stderr warn;
+events { worker_connections 1024; }
+
+# ASLV M4 standalone sidecar — vhost routing (L7).
+# Required env (compose provides): APP_HOST (m4 app), AUTH_HOST (stub-auth).
+# The compose file mounts this template into nginx:alpine with the module's
+# host port (18025) bound to 80; envsubst replaces ${APP_HOST}/${AUTH_HOST}.
+http {
+    resolver 127.0.0.11 valid=5s ipv6=off;
+
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-Host  $host;
+
+    # default: direct access (localhost:18025) -> API
+    server {
+        listen 80 default_server;
+        location / {
+            set $app ${APP_HOST};
+            proxy_pass http://$app:8080;
+        }
+    }
+
+    # api vhosts -> M4 API
+    server {
+        server_name api.aslv.lab aslv.lab www.aslv.lab;
+        location / {
+            set $app ${APP_HOST};
+            proxy_pass http://$app:8080;
+        }
+    }
+
+    # auth vhost -> stub-auth (dev JWT signer for the trust-edge testing)
+    server {
+        server_name auth.aslv.lab;
+        location / {
+            set $auth ${AUTH_HOST};
+            proxy_pass http://$auth:3000;
+        }
+    }
+}

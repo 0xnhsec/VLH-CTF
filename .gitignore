@@ -1,0 +1,8 @@
+node_modules/
+.env
+bin/
+dist/
+exports/*.ndjson
+exports/*.csv
+db/*.db
+*.log

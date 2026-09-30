@@ -1,0 +1,12 @@
+{
+  "name": "vlh-dsltv-base",
+  "version": "1.0.0",
+  "private": true,
+  "description": "VLH-CTF DSLTV shared subclass runtime",
+  "main": "runtime.js",
+  "dependencies": {
+    "better-sqlite3": "^11.3.0",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2"
+  }
+}

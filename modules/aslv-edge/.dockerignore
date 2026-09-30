@@ -1,0 +1,7 @@
+# dockerignore for the aslv-edge build context.
+# NOTE: conf/ and entrypoint-edgeback.sh ARE needed by the gateway-full,
+# gateway-standalone and edgeback targets — do not exclude them.
+.git
+.gitignore
+*.md
+qa

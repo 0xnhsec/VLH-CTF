@@ -1,0 +1,6 @@
+.git
+.gitignore
+*.md
+sidecar
+qa
+node_modules

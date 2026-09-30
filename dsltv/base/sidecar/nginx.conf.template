@@ -1,0 +1,13 @@
+worker_processes auto;
+error_log /dev/stderr warn;
+events { worker_connections 1024; }
+# L4 raw TCP pass-through: holds host port, never normalizes HTTP framing.
+# Vhost routing happens inside the app (Host header preserved) — required for
+# genuine origin separation AND HTTP-smuggling testability (NFR-5).
+stream {
+    resolver 127.0.0.11 valid=5s ipv6=off;
+    server {
+        listen ${LAB_PORT};
+        proxy_pass ${APP_HOST}:8080;
+    }
+}

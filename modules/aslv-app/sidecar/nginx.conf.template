@@ -1,0 +1,83 @@
+worker_processes auto;
+error_log /dev/stderr warn;
+events { worker_connections 1024; }
+
+# VLH-CTF — ASLV M3 standalone sidecar (L7 vhost routing).
+#
+# Rendered by the compose file (service app-edge-std) via:
+#     envsubst '$LAB_PORT $APP_HOST' < this template
+#   LAB_PORT = 80 (container); host port 18023 is bound by compose.
+#   APP_HOST = app-std (the Laravel app container).
+# Only these two variables may be referenced — compose does not substitute
+# anything else.
+#
+# The client's Host header is forwarded VERBATIM ($http_host, port included):
+# the app's ResolveTenant middleware derives the browsing tenant from it
+# (<tenant>.aslv.lab → tenant). That is the whole M3 play surface.
+#
+# 127.0.0.1:18093 (Host: collector.aslv.lab) is the TUI activity mgmt binding;
+# the app serves GET /internal/activity as NDJSON.
+
+http {
+    resolver 127.0.0.11 valid=5s ipv6=off;
+
+    proxy_set_header Host              $http_host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_http_version 1.1;
+
+    # Tenant subdomains <tenant>.aslv.lab (incl. victim.aslv.lab) → the app.
+    # /internal stays unrouted on tenant hosts, mirroring the full-mode
+    # gateway posture (the collector vhost below is the only /internal path).
+    server {
+        listen ${LAB_PORT};
+        server_name *.aslv.lab;
+
+        location /internal/ { return 404; }
+
+        location / {
+            set $app ${APP_HOST};
+            proxy_pass http://$app:80;
+        }
+    }
+
+    # Collector vhost → the app's activity feed (GET /internal/activity).
+    server {
+        listen ${LAB_PORT};
+        server_name collector.aslv.lab;
+
+        location / {
+            set $app ${APP_HOST};
+            proxy_pass http://$app:80;
+        }
+    }
+
+    # Mail vhost → stub-mail (MailHog's standalone stand-in, service name
+    # fixed by the compose m3 profile). Variable + resolver so nginx starts
+    # even when that container is absent (502s on the mail vhost only).
+    server {
+        listen ${LAB_PORT};
+        server_name mail.aslv.lab;
+
+        location / {
+            set $mail stub-mail-3;
+            proxy_pass http://$mail:3000;
+        }
+    }
+
+    # Everything else (localhost:18023 direct access, unknown hosts) → the
+    # app, so the module is usable without editing /etc/hosts. ResolveTenant
+    # simply sees no tenant subdomain (shared origin).
+    server {
+        listen ${LAB_PORT} default_server;
+        server_name _;
+
+        location /internal/ { return 404; }
+
+        location / {
+            set $app ${APP_HOST};
+            proxy_pass http://$app:80;
+        }
+    }
+}

@@ -1,0 +1,51 @@
+worker_processes auto;
+error_log /dev/stderr warn;
+events { worker_connections 1024; }
+
+# ASLV M5 standalone sidecar — vhost routing (L7).
+# Required env (compose provides): APP_HOST (m5 app), MAIL_HOST (stub-mail),
+# PORTAL_HOST (stub-portal). The compose file mounts this template into
+# nginx:alpine with the module host port (18026) bound to 80.
+http {
+    resolver 127.0.0.11 valid=5s ipv6=off;
+
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-Host  $host;
+
+    # default + auth + client vhosts -> M5 identity app (Host-dispatched inside)
+    server {
+        listen 80 default_server;
+        location / {
+            set $app ${APP_HOST};
+            proxy_pass http://$app:3000;
+        }
+    }
+    server {
+        server_name auth.aslv.lab client.aslv.lab;
+        location / {
+            set $app ${APP_HOST};
+            proxy_pass http://$app:3000;
+        }
+    }
+
+    # mail vhost -> stub-mail (MailHog takes this role in full mode)
+    server {
+        server_name mail.aslv.lab;
+        location / {
+            set $mail ${MAIL_HOST};
+            proxy_pass http://$mail:3000;
+        }
+    }
+
+    # portal vhost -> stub-portal
+    server {
+        server_name portal.aslv.lab www.portal.aslv.lab;
+        location / {
+            set $portal ${PORTAL_HOST};
+            proxy_pass http://$portal:3000;
+        }
+    }
+}

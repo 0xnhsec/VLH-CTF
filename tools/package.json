@@ -1,0 +1,13 @@
+{
+  "name": "vlh-ctf-tools",
+  "private": true,
+  "version": "1.0.0",
+  "description": "VLH-CTF tooling — docker-compose.yml generator (reads manifests/dsltv-manifest.yaml)",
+  "type": "module",
+  "scripts": {
+    "gen": "node gen-compose.mjs"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  }
+}
