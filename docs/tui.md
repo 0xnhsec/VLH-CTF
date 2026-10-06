@@ -35,7 +35,7 @@ Bubbles; CGO disabled).
 | View | What it shows |
 |---|---|
 | **Main menu** | ASLV modes (full / m1..m5) and DSLTV categories → subclasses |
-| **Status** | Container table for compose project `vlh-ctf` (filtered by compose labels), port occupants, running state — green = running/OK, red = stopped/error (FR-9: no other semantic colors) |
+| **Status** | Container table for compose project `vlh-ctf` (filtered by compose labels), port occupants, running state — green = running/OK, red = stopped/error (FR-9: no other semantic colors). Below the table: the active profiles and the **copyable play URLs** (`http://<vhost>:<real port>/`) of every running profile — the port is read from the container that publishes it, so a FR-11 remap shows up correctly, and a red hint names any vhost missing from `/etc/hosts` |
 | **Logs** | Live per-container log tail (Bubbles viewport, follow toggle on/off) |
 | **Activity** | Table polling the active mode's collector mgmt port every ~2 s: timestamp, identifier, `is_authenticated`, data, latency. Red rows flag anomalies (e.g. anonymous hits on authenticated endpoints) |
 | **Export** | Activity log → `exports/*.ndjson` or `exports/*.csv` |

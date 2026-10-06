@@ -22,7 +22,7 @@ cd "$(dirname "$0")"
 
 MARK_BEGIN="# BEGIN VLH-CTF hosts (added by installer.sh)"
 MARK_END="# END VLH-CTF hosts (added by installer.sh)"
-HOSTS_LINE="127.0.0.1 victim.target.lab attacker.target.lab collector.target.lab mail.target.lab victim.aslv.lab attacker.aslv.lab collector.aslv.lab mail.aslv.lab auth.aslv.lab edge.aslv.lab app.aslv.lab api.aslv.lab aslv.lab www.aslv.lab"
+HOSTS_LINE="127.0.0.1 victim.target.lab attacker.target.lab collector.target.lab mail.target.lab victim.aslv.lab attacker.aslv.lab collector.aslv.lab mail.aslv.lab auth.aslv.lab client.aslv.lab edge.aslv.lab app.aslv.lab api.aslv.lab aslv.lab www.aslv.lab"
 
 say()  { printf '[vlh-ctf] %s\n' "$*"; }
 ok()   { printf '[vlh-ctf] \033[32mOK\033[0m %s\n' "$*"; }

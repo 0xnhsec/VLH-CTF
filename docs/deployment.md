@@ -87,6 +87,11 @@ Three layers, no external DNS needed (NFR-1):
 3. **Host (optional):** browsers cannot set a `Host` header, so host-side play
    uses `/etc/hosts`. `./installer.sh --hosts` installs an idempotent marked block
    (`victim/attacker/collector/mail .target.lab` + `.aslv.lab` hosts → 127.0.0.1).
+   The block covers every full-mode gateway vhost: `aslv.lab`, `www.aslv.lab`,
+   `victim.aslv.lab`, `attacker.aslv.lab`, `collector.aslv.lab`, `mail.aslv.lab`,
+   `auth.aslv.lab`, `client.aslv.lab`, `edge.aslv.lab`, `app.aslv.lab`,
+   `api.aslv.lab`. The TUI prints those entry points (with the real host port)
+   under the Status table and warns when one is missing from `/etc/hosts`.
    `/etc/hosts` cannot express **wildcards** — `*.aslv.lab` tenant subdomains
    (M3) or arbitrary `*.target.lab` attacker hosts need a local dnsmasq
    (`address=/.aslv.lab/127.0.0.1`, `address=/.target.lab/127.0.0.1`) or

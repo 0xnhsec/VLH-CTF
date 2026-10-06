@@ -54,8 +54,15 @@ func statusTableRows(list []dockerops.ContainerInfo) []table.Row {
         return rows
 }
 
+// statusReserve is how many body lines the status view spends below the
+// container table: the "active:" summary plus the copyable play-URL block
+// (and its /etc/hosts hint). The table height is body minus this.
+func (m Model) statusReserve() int {
+        return 1 + len(m.playLines(m.width))
+}
+
 // statusView renders the containers table plus the active-profile summary
-// (part of the FR-6 pre-deploy picture).
+// (part of the FR-6 pre-deploy picture) and the copyable play URLs.
 func (m Model) statusView() string {
         if len(m.statusRows) == 0 {
                 return Dim.Render("no lab containers found (compose project vlh-ctf / label 811911.vlh=1)") +
@@ -69,6 +76,17 @@ func (m Model) statusView() string {
                 b.WriteString(Dim.Render("active profiles: none"))
         } else {
                 b.WriteString(Normal.Render("active: ") + clipStr(strings.Join(ap, ", "), maxInt(10, m.width-8)))
+        }
+        for _, l := range m.playLines(m.width) {
+                b.WriteString("\n")
+                switch {
+                case strings.HasPrefix(l, playPrefix):
+                        b.WriteString(Normal.Render(playPrefix) + strings.TrimPrefix(l, playPrefix))
+                case strings.HasPrefix(l, hintPrefix):
+                        b.WriteString(Alert.Render(hintPrefix) + strings.TrimPrefix(l, hintPrefix))
+                default:
+                        b.WriteString(l)
+                }
         }
         return b.String()
 }

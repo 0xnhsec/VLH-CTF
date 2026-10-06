@@ -47,8 +47,10 @@ make up-full   # or: up-m1 .. up-m5, or: up-dsltv-jwt-none-alg (any manifest pro
 
 - **ASLV full mode** — single gateway, Host-header vhosts: `aslv.lab`,
   `www.aslv.lab` (portal, `/user/v1/` → API), `*.aslv.lab` tenants (app),
-  `auth.aslv.lab` (identity), `mail.aslv.lab` (MailHog), `collector.aslv.lab`,
-  `attacker.aslv.lab` (exploit server), `edge.aslv.lab` (smuggling surface).
+  `auth.aslv.lab` (identity), `client.aslv.lab` (M5 OAuth client app),
+  `mail.aslv.lab` (MailHog), `collector.aslv.lab`,
+  `attacker.aslv.lab` (exploit server), `victim.aslv.lab` (M2 victim origin),
+  `edge.aslv.lab` (smuggling surface).
 - **ASLV standalone** — module sidecars route `victim/attacker/collector/mail`
   `.aslv.lab` vhosts on the module port.
 - **DSLTV** — `victim.target.lab`, `attacker.target.lab`, `collector.target.lab`,

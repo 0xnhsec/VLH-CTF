@@ -15,6 +15,6 @@ return [
     // other modules by the gateways).
     'reserved_tenants' => [
         'www', 'auth', 'mail', 'collector', 'attacker', 'edge',
-        'internal', 'app', 'api', 'portal', 'victim', 'stub',
+        'internal', 'app', 'api', 'portal', 'victim', 'client', 'stub',
     ],
 ];

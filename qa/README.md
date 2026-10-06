@@ -112,11 +112,16 @@ M4: `/user/v1/list`; M5: `/directory`; JWT labs: `/api/directory`).
    mail goes to the innocent's own address. The takeover still works via the
    predictable token (the AUTH win state); chain B reports the mail's actual
    destination with a WARN.
-4. **Full-mode `client.aslv.lab` is not a gateway vhost.** It falls through the
-   `*.aslv.lab` tenant regex to the M3 app, so M5's OAuth client app is only
-   reachable in m5 standalone. Chains A/B/C do not depend on it; the M5
-   standalone solver drives the client callback through the M5 victim bot
-   (loopback), which still works.
+   *Decision (portal nav fix):* kept unset on purpose — the portal exposes no
+   `/_internal/user/` route, so the env var would be a silent no-op (an empty
+   or wrong base URL is worse than absent). Set it the moment M2 ships that
+   endpoint.
+4. ~~**Full-mode `client.aslv.lab` is not a gateway vhost.**~~ **RESOLVED** —
+   `gateway-full.conf` now routes `client.aslv.lab` → identity and
+   `victim.aslv.lab` → portal explicitly (both ahead of the `*.aslv.lab` tenant
+   regex), and the full profile sets `AUTH_ORIGIN` / `CLIENT_REDIRECT_URI` to
+   the gateway origin. Both vhosts answer 200 through the gateway on 18024; the
+   M5 standalone path is unchanged.
 5. **`modules/aslv-app` (M3) was incomplete at authoring time** (no
    `routes/`, views, seeders, Dockerfile, sidecar — the controllers and
    middleware exist). The M3 solvers target the contract paths

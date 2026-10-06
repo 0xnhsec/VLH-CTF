@@ -40,6 +40,11 @@ const OUT_PATH = path.join(ROOT, 'docker-compose.yml');
 
 const EXPECTED_DSLTV_SUBCLASSES = 54;
 
+/** Host port of the full-mode gateway (CONTRACT §2). The services behind it
+ *  bake absolute URLs with this port (identity OAuth origin/redirect, portal
+ *  nav fallback), so it lives in exactly one place. */
+const FULL_PORT = 18024;
+
 /* ------------------------------------------------------------------------- */
 /* Tiny deterministic YAML emitter (js-yaml cannot emit comments).           */
 /* Only the shapes used below are supported: ordered maps, string arrays,    */
@@ -177,7 +182,7 @@ block([
 
 svc('gateway', {
   build: edgeBuild('gateway-full'),
-  ports: ['18024:80'],
+  ports: [`${FULL_PORT}:80`],
   depends_on: ['edge-front', 'portal', 'app', 'api', 'identity', 'mailhog'],
   volumes: ['./modules/aslv-edge/conf/gateway-full.conf:/etc/nginx/conf.d/default.conf:ro'],
   extra_hosts: Object.fromEntries(ASLV_LAB_HOSTS.map((h) => [h, '127.0.0.1'])),
@@ -217,7 +222,17 @@ svc('edge-back', {
 
 svc('portal', {
   build: './modules/aslv-portal',
-  environment: { LAB_DOMAIN: 'aslv.lab', ACTIVITY_SINK: 'http://collector:8090/ingest' },
+  environment: {
+    // The image defaults are the M2 STANDALONE shape (STANDALONE=1,
+    // PORTAL_PORT=18022). Full mode runs the same app behind the gateway on
+    // FULL_PORT — without these overrides every absolute URL the portal
+    // renders (header nav, bot Host fallback) points at 18022, a port this
+    // profile never publishes.
+    STANDALONE: '0',
+    PORTAL_PORT: String(FULL_PORT),
+    LAB_DOMAIN: 'aslv.lab',
+    ACTIVITY_SINK: 'http://collector:8090/ingest',
+  },
   volumes: ['m2-data:/data', 'vlh-registry:/registry'],
   networks: NETS,
   labels: LABEL,
@@ -225,7 +240,7 @@ svc('portal', {
 }, [
   '  # portal — M2 Express (minimal, no CSRF middleware): login, profile,',
   '  # recovery-email change (CSRF surface), CORS-reflecting endpoints, exploit-',
-  '  # server vhost (attacker.aslv.lab).',
+  '  # server vhost (attacker.aslv.lab), victim vhost (victim.aslv.lab).',
 ]);
 
 svc('app', {
@@ -261,6 +276,12 @@ svc('identity', {
     ACTIVITY_SINK: 'http://collector:8090/ingest',
     SMTP_HOST: 'mailhog',
     SMTP_PORT: '1025',
+    // Image defaults are the m5 STANDALONE shape (AUTH_ORIGIN on :18026 and
+    // a mail fallback pointing at stub-mail — neither exists in this profile).
+    // Full mode is a single origin: everything on the gateway port.
+    AUTH_ORIGIN: `http://auth.aslv.lab:${FULL_PORT}`,
+    CLIENT_REDIRECT_URI: `http://client.aslv.lab:${FULL_PORT}/client/callback`,
+    MAIL_HTTP_URL: '',
   },
   volumes: ['m5-data:/data', 'vlh-registry:/registry'],
   networks: NETS,
@@ -712,6 +733,13 @@ for (const entry of services) {
     continue;
   }
   W(`  ${yamlKey(entry.name)}:`);
+  // Exact profile label (the tui/README "recommended" one): it makes the
+  // TUI's active-profile detection independent of the published ports, so a
+  // FR-11 port remap (docker-compose.override.yml) can never hide which
+  // profile is running — nor which host port it now answers on.
+  if (entry.def.labels && Array.isArray(entry.def.profiles) && entry.def.profiles.length === 1) {
+    entry.def.labels = { ...entry.def.labels, '811911.profile': entry.def.profiles[0] };
+  }
   emitMapping(entry.def, 4, out);
   W();
 }
@@ -740,6 +768,9 @@ function validate(text) {
     }
     if (!Array.isArray(s.profiles) || s.profiles.length === 0) {
       throw new Error(`validate: ${name} missing profiles`);
+    }
+    if (s.labels?.['811911.profile'] !== s.profiles[0]) {
+      throw new Error(`validate: ${name} missing label 811911.profile=${s.profiles[0]}`);
     }
     for (const p of s.profiles) {
       if (!byProfile.has(p)) byProfile.set(p, []);

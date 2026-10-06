@@ -40,6 +40,20 @@ const STANDALONE = process.env.STANDALONE === '1';
 const PORTAL_PORT = process.env.PORTAL_PORT || (STANDALONE ? '18022' : '18024');
 const ACTIVITY_SINK = process.env.ACTIVITY_SINK || '';
 
+/* Port the browser is actually talking to, taken from the request's Host
+ * header (the sidecar/gateway forwards $http_host verbatim). Absolute nav
+ * links must follow it: the SAME image serves standalone M2 (:18022) and the
+ * full-mode gateway (:18024), and the TUI can remap either port through
+ * docker-compose.override.yml — a baked PORTAL_PORT would point the nav at a
+ * closed port ("Firefox can't connect"). Container-internal calls (Host
+ * without a port, or :LISTEN_PORT) fall back to PORTAL_PORT. */
+function publicPort(req) {
+  const host = String((req && req.headers && req.headers.host) || '');
+  const m = /:(\d+)$/.exec(host);
+  if (m && m[1] !== String(LISTEN_PORT)) return m[1];
+  return PORTAL_PORT;
+}
+
 /* ------------------------------------------------------------- bootstrap */
 const { db, SEED, sessionApi, usersApi, parseCookies } = initDb({ dataDir: DATA_DIR, labDomain: LAB_DOMAIN });
 const flags = initFlags({ db, SEED, registryDir: REGISTRY_DIR, dataDir: DATA_DIR });
@@ -74,9 +88,9 @@ const LAYOUT_CSS = `
   code { background:#0f1a0f; padding:.1rem .3rem; border-radius:3px; }
 `;
 
-function render(title, bodyHtml, opts) {
+function render(req, title, bodyHtml, opts) {
   opts = opts || {};
-  const p = `:${PORTAL_PORT}`;
+  const p = `:${publicPort(req)}`;
   return `<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -164,7 +178,7 @@ const wantsJson = (req) =>
 accountRouter.get('/healthz', (req, res) => res.json({ ok: true, module: 'aslv-portal' }));
 
 accountRouter.get('/login', (req, res) => {
-  res.type('html').send(render('Login', `
+  res.type('html').send(render(req, 'Login', `
     <h1>Sign in</h1>
     <form method="post" action="/login">
       <p><input name="username" placeholder="username" required></p>
@@ -179,7 +193,7 @@ accountRouter.post('/login', (req, res) => {
   const user = usersApi.verify(username, password);
   if (!user) {
     if (wantsJson(req)) return res.status(401).json({ error: 'invalid credentials' });
-    return res.status(401).type('html').send(render('Login', '<h1>Sign in</h1><p>Invalid credentials.</p><p><a href="/login">try again</a></p>'));
+    return res.status(401).type('html').send(render(req, 'Login', '<h1>Sign in</h1><p>Invalid credentials.</p><p><a href="/login">try again</a></p>'));
   }
   loginCookie(res, user);
   if (wantsJson(req)) return res.json({ ok: true, username: user.username });
@@ -194,9 +208,9 @@ accountRouter.post('/logout', (req, res) => {
 });
 
 accountRouter.get('/me', (req, res) => {
-  if (!req.auth) return res.status(401).type('html').send(render('Account', '<p>Not logged in. <a href="/login">Log in</a></p>'));
+  if (!req.auth) return res.status(401).type('html').send(render(req, 'Account', '<p>Not logged in. <a href="/login">Log in</a></p>'));
   const u = req.auth.user;
-  res.type('html').send(render('Account', `
+  res.type('html').send(render(req, 'Account', `
     <h1>Account — ${esc(u.username)}</h1>
     <table>
       <tr><th>username</th><td>${esc(u.username)}</td></tr>
@@ -211,9 +225,9 @@ accountRouter.get('/me', (req, res) => {
 
 /* CSRF surface: state change with zero CSRF protection (deliberate, arch §7.0). */
 accountRouter.get('/account', (req, res) => {
-  if (!req.auth) return res.status(401).type('html').send(render('Account', '<p>Not logged in. <a href="/login">Log in</a></p>'));
+  if (!req.auth) return res.status(401).type('html').send(render(req, 'Account', '<p>Not logged in. <a href="/login">Log in</a></p>'));
   const u = req.auth.user;
-  res.type('html').send(render('Account settings', `
+  res.type('html').send(render(req, 'Account settings', `
     <h1>Recovery email</h1>
     <div class="card">
       <p>current recovery email: <code>${esc(u.recovery_email || '')}</code></p>
@@ -235,7 +249,7 @@ accountRouter.post('/account/recovery-email', (req, res) => {
   if (wantsJson(req) || (req.headers['content-type'] || '').includes('application/json')) {
     return res.json({ ok: true, recovery_email: email });
   }
-  res.type('html').send(render('Account settings', `<h1>Recovery email</h1><div class="card"><p>updated to <code>${esc(email)}</code></p><p><a href="/account">back</a></p></div>`));
+  res.type('html').send(render(req, 'Account settings', `<h1>Recovery email</h1><div class="card"><p>updated to <code>${esc(email)}</code></p><p><a href="/account">back</a></p></div>`));
 });
 
 /* CORS surface: reflected Origin + credentials on a credentialed endpoint. */
@@ -276,7 +290,7 @@ accountRouter.get('/api/quotes', (req, res) => {
 
 /* ------------------------------------------------------------ victim vhost */
 victimRouter.get('/', (req, res) => {
-  res.type('html').send(render('Login', `
+  res.type('html').send(render(req, 'Login', `
     <h1>victim portal</h1>
     <div class="card">
       <form method="post" action="/login">
@@ -291,7 +305,7 @@ victimRouter.use(accountRouter);
 
 /* ------------------------------------------------------------ portal vhost */
 portalRouter.get('/', (req, res) => {
-  res.type('html').send(render('Portal', `
+  res.type('html').send(render(req, 'Portal', `
     <h1>aslv.lab portal</h1>
     <div class="card">
       <p>The organization portal. Sign in on the <a href="/login">login page</a>.</p>
@@ -316,9 +330,9 @@ attackerRouter.use((req, res, next) => { // record every hit (Referer/origin cap
 
 attackerRouter.get('/', (req, res) => {
   const pages = db.prepare('SELECT name, ts FROM attacker_pages ORDER BY name').all();
-  res.type('html').send(render('Exploit server', `
+  res.type('html').send(render(req, 'Exploit server', `
     <h1>Exploit server</h1>
-    <p class="muted">Store exploit pages, then serve them from <code>http://attacker.${esc(LAB_DOMAIN)}:${esc(PORTAL_PORT)}/pages/&lt;name&gt;</code>.</p>
+    <p class="muted">Store exploit pages, then serve them from <code>http://attacker.${esc(LAB_DOMAIN)}:${esc(publicPort(req))}/pages/&lt;name&gt;</code>.</p>
     <form method="POST" action="/pages/exploit.html">
       <p><input name="name" value="exploit.html" size="24" required> <button>store page</button></p>
       <p><textarea name="body" rows="10" cols="90" placeholder="&lt;script&gt;fetch('http://victim.../api/secret', {credentials:'include'})...&lt;/script&gt;"></textarea></p>
@@ -344,7 +358,7 @@ attackerRouter.get('/pages/:name', (req, res) => {
 });
 attackerRouter.get('/leaks', (req, res) => {
   const hits = db.prepare('SELECT * FROM attacker_hits ORDER BY id DESC LIMIT 100').all();
-  res.type('html').send(render('Captured hits', `
+  res.type('html').send(render(req, 'Captured hits', `
     <h1>Attacker-captured hits</h1>
     <table><tr><th>time</th><th>host</th><th>url</th><th>referer</th><th>origin</th></tr>
     ${hits.map((h) => `<tr><td>${esc(h.ts)}</td><td>${esc(h.host)}</td><td>${esc(h.url)}</td><td>${esc(h.referer)}</td><td>${esc(h.origin)}</td></tr>`).join('') || '<tr><td colspan="5" class="muted">no hits yet</td></tr>'}
@@ -418,7 +432,7 @@ collectorRouter.get('/verify', (req, res) => {
 });
 
 collectorRouter.get('/', (req, res) => {
-  res.type('html').send(render('Verifier', `
+  res.type('html').send(render(req, 'Verifier', `
     <h1>Event verifier</h1>
     <div class="card"><p><a href="/verify">GET /verify</a> — dual check for CORS (exfil hit bound to the innocent secret) and CSRF (innocent row state change).</p></div>
     <p class="muted">POST /victim drives the innocent browser (url, origin, referer, method, body). POST /collect | /exfil record exfil hits. GET /internal/activity is the activity feed.</p>`));
@@ -531,7 +545,7 @@ mailRouter.post('/internal/mail', (req, res) => {
 });
 mailRouter.get('/', (req, res) => {
   const items = db.prepare('SELECT * FROM mailbox ORDER BY id DESC LIMIT 50').all();
-  res.type('html').send(render('Mail', `
+  res.type('html').send(render(req, 'Mail', `
     <h1>Mailbox</h1>
     <table><tr><th>id</th><th>time</th><th>to</th><th>subject</th><th>view</th></tr>
     ${items.map((m) => `<tr><td>${m.id}</td><td>${esc(m.ts)}</td><td>${esc(m.to_addr)}</td><td>${esc(m.subject)}</td><td><a href="/mail/${m.id}">open</a></td></tr>`).join('') || '<tr><td colspan="5" class="muted">empty</td></tr>'}

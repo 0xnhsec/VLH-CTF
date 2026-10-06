@@ -68,6 +68,7 @@ type (
         refreshErrMsg struct{ err error }
         deployMsg struct {
                 target deployTarget
+                port   int // host port the profile ends up on (after any remap)
                 err    error
         }
         profileOpMsg struct {
@@ -201,7 +202,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                         w = 20 // keep tables usable on tiny terminals
                 }
                 m.status.SetWidth(w)
-                sh := h - 3
+                sh := h - m.statusReserve()
                 if sh < 1 {
                         sh = 1
                 }
@@ -237,6 +238,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
         case containersMsg:
                 m.statusRows = msg.list
                 m.status.SetRows(statusTableRows(msg.list))
+                // the play-URL block below the table grows with the active set,
+                // so the table height follows every refresh.
+                if sh := m.bodyHeight() - m.statusReserve(); sh >= 1 && sh != m.statusH {
+                        m.status.SetHeight(sh)
+                        m.statusH = sh
+                }
                 m.refreshMenuMarks()
                 var cmd tea.Cmd
                 if m.screen == scrLogs && m.logStream == "" {
@@ -257,7 +264,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                         m.setMsg(fmt.Sprintf("deploy %s failed: %v", msg.target.Name, msg.err), true)
                         return m, nil
                 }
-                m.setMsg(fmt.Sprintf("deployed %s (profile %s)", msg.target.Name, msg.target.Profile), false)
+                text := fmt.Sprintf("deployed %s (profile %s)", msg.target.Name, msg.target.Profile)
+                if u := firstURL(msg.target.Profile, msg.port); u != "" {
+                        text += " — " + u
+                }
+                m.setMsg(text, false)
                 m.screen = scrStatus
                 return m, refreshCmd(m.dk)
 
@@ -367,7 +378,11 @@ func deployCmd(dk *dockerops.Client, cfg *config.Config, target deployTarget, re
                 if err := dockerops.ComposeUp(cfg.ComposeFile, target.Profile); err != nil {
                         return deployMsg{target: target, err: err}
                 }
-                return deployMsg{target: target}
+                port := target.Port
+                if p, ok := remap[target.Port]; ok && p != 0 {
+                        port = p
+                }
+                return deployMsg{target: target, port: port}
         }
 }
 
@@ -1180,6 +1195,18 @@ func (m Model) confirmView() string {
                                 Dim.Render("  (writes docker-compose.override.yml)") + "\n")
                 }
         }
+        // copyable entry point for what is about to come up (FR-11 remap aware)
+        port := cs.target.Port
+        if cs.altPort != 0 {
+                port = cs.altPort
+        }
+        if us := urlsFor(cs.target.Profile, port); len(us) > 0 {
+                line := "\n  play:      " + Normal.Render(us[0])
+                if len(us) > 1 {
+                        line += Dim.Render(fmt.Sprintf("  (+%d more on the Status screen)", len(us)-1))
+                }
+                b.WriteString(line + "\n")
+        }
         b.WriteString("\n" + HelpStyle.Render("  enter/d deploy · D force · p next free port · 0 clear remap · x stop occupant · R recheck · esc cancel"))
         return b.String()
 }
@@ -1194,7 +1221,7 @@ func (m Model) helpHint() string {
         case scrDSLTV, scrDSLTVSub:
                 s = "enter open/deploy · s stop · r restart · l logs · esc back"
         case scrStatus:
-                s = "s stop · S start · r restart · l/enter logs · R refresh · esc back"
+                s = "s stop · S start · r restart · l logs · R refresh · copy the play URLs below · esc back"
         case scrLogs:
                 if m.logStream == "" {
                         s = "enter open logs · R refresh · esc back"

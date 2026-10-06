@@ -205,6 +205,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: full
     profiles:
       - full
 
@@ -220,6 +221,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: full
     profiles:
       - full
 
@@ -239,15 +241,18 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: full
     profiles:
       - full
 
   # portal — M2 Express (minimal, no CSRF middleware): login, profile,
   # recovery-email change (CSRF surface), CORS-reflecting endpoints, exploit-
-  # server vhost (attacker.aslv.lab).
+  # server vhost (attacker.aslv.lab), victim vhost (victim.aslv.lab).
   portal:
     build: "./modules/aslv-portal"
     environment:
+      STANDALONE: "0"
+      PORTAL_PORT: "18024"
       LAB_DOMAIN: aslv.lab
       ACTIVITY_SINK: "http://collector:8090/ingest"
     volumes:
@@ -257,6 +262,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: full
     profiles:
       - full
 
@@ -275,6 +281,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: full
     profiles:
       - full
 
@@ -293,6 +300,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: full
     profiles:
       - full
 
@@ -307,6 +315,9 @@ services:
       ACTIVITY_SINK: "http://collector:8090/ingest"
       SMTP_HOST: mailhog
       SMTP_PORT: "1025"
+      AUTH_ORIGIN: "http://auth.aslv.lab:18024"
+      CLIENT_REDIRECT_URI: "http://client.aslv.lab:18024/client/callback"
+      MAIL_HTTP_URL: ""
     volumes:
       - "m5-data:/data"
       - "vlh-registry:/registry"
@@ -314,6 +325,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: full
     profiles:
       - full
 
@@ -336,6 +348,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: full
     profiles:
       - full
 
@@ -354,6 +367,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: full
     profiles:
       - full
 
@@ -366,6 +380,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: full
     profiles:
       - full
 
@@ -402,6 +417,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: m1
     profiles:
       - m1
 
@@ -416,6 +432,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: m1
     profiles:
       - m1
 
@@ -434,6 +451,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: m1
     profiles:
       - m1
 
@@ -448,6 +466,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: m1
     profiles:
       - m1
 
@@ -462,6 +481,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: m1
     profiles:
       - m1
 
@@ -474,6 +494,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: m1
     profiles:
       - m1
 
@@ -495,6 +516,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: m2
     profiles:
       - m2
 
@@ -518,6 +540,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: m2
     profiles:
       - m2
 
@@ -532,6 +555,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: m2
     profiles:
       - m2
 
@@ -544,6 +568,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: m2
     profiles:
       - m2
 
@@ -562,6 +587,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: m3
     profiles:
       - m3
 
@@ -584,6 +610,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: m3
     profiles:
       - m3
 
@@ -598,6 +625,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: m3
     profiles:
       - m3
 
@@ -610,6 +638,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: m3
     profiles:
       - m3
 
@@ -628,6 +657,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: m4
     profiles:
       - m4
 
@@ -651,6 +681,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: m4
     profiles:
       - m4
 
@@ -665,6 +696,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: m4
     profiles:
       - m4
 
@@ -686,6 +718,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: m5
     profiles:
       - m5
 
@@ -710,6 +743,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: m5
     profiles:
       - m5
 
@@ -724,6 +758,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: m5
     profiles:
       - m5
 
@@ -736,6 +771,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: m5
     profiles:
       - m5
 
@@ -777,6 +813,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-cors-reflected-origin
     profiles:
       - dsltv-cors-reflected-origin
 
@@ -797,6 +834,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-cors-reflected-origin
     profiles:
       - dsltv-cors-reflected-origin
 
@@ -814,6 +852,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-cors-null-origin
     profiles:
       - dsltv-cors-null-origin
 
@@ -834,6 +873,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-cors-null-origin
     profiles:
       - dsltv-cors-null-origin
 
@@ -851,6 +891,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-cors-weak-origin-regex
     profiles:
       - dsltv-cors-weak-origin-regex
 
@@ -871,6 +912,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-cors-weak-origin-regex
     profiles:
       - dsltv-cors-weak-origin-regex
 
@@ -888,6 +930,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-cors-subdomain-trust
     profiles:
       - dsltv-cors-subdomain-trust
 
@@ -908,6 +951,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-cors-subdomain-trust
     profiles:
       - dsltv-cors-subdomain-trust
 
@@ -925,6 +969,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-cors-wildcard-creds
     profiles:
       - dsltv-cors-wildcard-creds
 
@@ -945,6 +990,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-cors-wildcard-creds
     profiles:
       - dsltv-cors-wildcard-creds
 
@@ -962,6 +1008,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-cors-missing-vary
     profiles:
       - dsltv-cors-missing-vary
 
@@ -982,6 +1029,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-cors-missing-vary
     profiles:
       - dsltv-cors-missing-vary
 
@@ -1001,6 +1049,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-csrf-missing-token
     profiles:
       - dsltv-csrf-missing-token
 
@@ -1021,6 +1070,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-csrf-missing-token
     profiles:
       - dsltv-csrf-missing-token
 
@@ -1038,6 +1088,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-csrf-content-type-bypass
     profiles:
       - dsltv-csrf-content-type-bypass
 
@@ -1058,6 +1109,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-csrf-content-type-bypass
     profiles:
       - dsltv-csrf-content-type-bypass
 
@@ -1075,6 +1127,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-csrf-method-switch
     profiles:
       - dsltv-csrf-method-switch
 
@@ -1095,6 +1148,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-csrf-method-switch
     profiles:
       - dsltv-csrf-method-switch
 
@@ -1112,6 +1166,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-csrf-existence-check
     profiles:
       - dsltv-csrf-existence-check
 
@@ -1132,6 +1187,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-csrf-existence-check
     profiles:
       - dsltv-csrf-existence-check
 
@@ -1149,6 +1205,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-csrf-no-session-binding
     profiles:
       - dsltv-csrf-no-session-binding
 
@@ -1169,6 +1226,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-csrf-no-session-binding
     profiles:
       - dsltv-csrf-no-session-binding
 
@@ -1186,6 +1244,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-csrf-same-site-none
     profiles:
       - dsltv-csrf-same-site-none
 
@@ -1206,6 +1265,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-csrf-same-site-none
     profiles:
       - dsltv-csrf-same-site-none
 
@@ -1225,6 +1285,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-idor-numeric-id
     profiles:
       - dsltv-idor-numeric-id
 
@@ -1245,6 +1306,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-idor-numeric-id
     profiles:
       - dsltv-idor-numeric-id
 
@@ -1262,6 +1324,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-idor-write-delete
     profiles:
       - dsltv-idor-write-delete
 
@@ -1282,6 +1345,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-idor-write-delete
     profiles:
       - dsltv-idor-write-delete
 
@@ -1299,6 +1363,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-idor-file-path
     profiles:
       - dsltv-idor-file-path
 
@@ -1319,6 +1384,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-idor-file-path
     profiles:
       - dsltv-idor-file-path
 
@@ -1338,6 +1404,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-bac-vertical-esc
     profiles:
       - dsltv-bac-vertical-esc
 
@@ -1358,6 +1425,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-bac-vertical-esc
     profiles:
       - dsltv-bac-vertical-esc
 
@@ -1375,6 +1443,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-bac-horizontal-esc
     profiles:
       - dsltv-bac-horizontal-esc
 
@@ -1395,6 +1464,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-bac-horizontal-esc
     profiles:
       - dsltv-bac-horizontal-esc
 
@@ -1412,6 +1482,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-bac-role-param-tamper
     profiles:
       - dsltv-bac-role-param-tamper
 
@@ -1432,6 +1503,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-bac-role-param-tamper
     profiles:
       - dsltv-bac-role-param-tamper
 
@@ -1449,6 +1521,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-bac-method-bypass
     profiles:
       - dsltv-bac-method-bypass
 
@@ -1469,6 +1542,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-bac-method-bypass
     profiles:
       - dsltv-bac-method-bypass
 
@@ -1486,6 +1560,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-bac-cross-tenant
     profiles:
       - dsltv-bac-cross-tenant
 
@@ -1506,6 +1581,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-bac-cross-tenant
     profiles:
       - dsltv-bac-cross-tenant
 
@@ -1523,6 +1599,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-bac-workflow-bypass
     profiles:
       - dsltv-bac-workflow-bypass
 
@@ -1543,6 +1620,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-bac-workflow-bypass
     profiles:
       - dsltv-bac-workflow-bypass
 
@@ -1560,6 +1638,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-bac-mass-assign
     profiles:
       - dsltv-bac-mass-assign
 
@@ -1580,6 +1659,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-bac-mass-assign
     profiles:
       - dsltv-bac-mass-assign
 
@@ -1599,6 +1679,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-jwt-none-alg
     profiles:
       - dsltv-jwt-none-alg
 
@@ -1619,6 +1700,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-jwt-none-alg
     profiles:
       - dsltv-jwt-none-alg
 
@@ -1636,6 +1718,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-jwt-weak-hmac
     profiles:
       - dsltv-jwt-weak-hmac
 
@@ -1656,6 +1739,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-jwt-weak-hmac
     profiles:
       - dsltv-jwt-weak-hmac
 
@@ -1673,6 +1757,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-jwt-alg-confusion
     profiles:
       - dsltv-jwt-alg-confusion
 
@@ -1693,6 +1778,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-jwt-alg-confusion
     profiles:
       - dsltv-jwt-alg-confusion
 
@@ -1710,6 +1796,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-jwt-jku-bypass
     profiles:
       - dsltv-jwt-jku-bypass
 
@@ -1730,6 +1817,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-jwt-jku-bypass
     profiles:
       - dsltv-jwt-jku-bypass
 
@@ -1747,6 +1835,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-jwt-jwk-injection
     profiles:
       - dsltv-jwt-jwk-injection
 
@@ -1767,6 +1856,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-jwt-jwk-injection
     profiles:
       - dsltv-jwt-jwk-injection
 
@@ -1784,6 +1874,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-jwt-kid-injection
     profiles:
       - dsltv-jwt-kid-injection
 
@@ -1804,6 +1895,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-jwt-kid-injection
     profiles:
       - dsltv-jwt-kid-injection
 
@@ -1821,6 +1913,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-jwt-exp-not-checked
     profiles:
       - dsltv-jwt-exp-not-checked
 
@@ -1841,6 +1934,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-jwt-exp-not-checked
     profiles:
       - dsltv-jwt-exp-not-checked
 
@@ -1860,6 +1954,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-oauth-redirect-uri-bypass
     profiles:
       - dsltv-oauth-redirect-uri-bypass
 
@@ -1880,6 +1975,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-oauth-redirect-uri-bypass
     profiles:
       - dsltv-oauth-redirect-uri-bypass
 
@@ -1897,6 +1993,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-oauth-missing-state
     profiles:
       - dsltv-oauth-missing-state
 
@@ -1917,6 +2014,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-oauth-missing-state
     profiles:
       - dsltv-oauth-missing-state
 
@@ -1934,6 +2032,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-oauth-pre-auth-linking
     profiles:
       - dsltv-oauth-pre-auth-linking
 
@@ -1954,6 +2053,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-oauth-pre-auth-linking
     profiles:
       - dsltv-oauth-pre-auth-linking
 
@@ -1971,6 +2071,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-oauth-referer-code-leak
     profiles:
       - dsltv-oauth-referer-code-leak
 
@@ -1991,6 +2092,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-oauth-referer-code-leak
     profiles:
       - dsltv-oauth-referer-code-leak
 
@@ -2008,6 +2110,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-oauth-implicit-grant-abuse
     profiles:
       - dsltv-oauth-implicit-grant-abuse
 
@@ -2028,6 +2131,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-oauth-implicit-grant-abuse
     profiles:
       - dsltv-oauth-implicit-grant-abuse
 
@@ -2045,6 +2149,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-oauth-scope-creep
     profiles:
       - dsltv-oauth-scope-creep
 
@@ -2065,6 +2170,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-oauth-scope-creep
     profiles:
       - dsltv-oauth-scope-creep
 
@@ -2082,6 +2188,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-oauth-no-pkce
     profiles:
       - dsltv-oauth-no-pkce
 
@@ -2102,6 +2209,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-oauth-no-pkce
     profiles:
       - dsltv-oauth-no-pkce
 
@@ -2121,6 +2229,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-auth-no-rate-limit
     profiles:
       - dsltv-auth-no-rate-limit
 
@@ -2141,6 +2250,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-auth-no-rate-limit
     profiles:
       - dsltv-auth-no-rate-limit
 
@@ -2158,6 +2268,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-auth-reset-token-predictable
     profiles:
       - dsltv-auth-reset-token-predictable
 
@@ -2178,6 +2289,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-auth-reset-token-predictable
     profiles:
       - dsltv-auth-reset-token-predictable
 
@@ -2195,6 +2307,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-auth-mfa-bypass
     profiles:
       - dsltv-auth-mfa-bypass
 
@@ -2215,6 +2328,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-auth-mfa-bypass
     profiles:
       - dsltv-auth-mfa-bypass
 
@@ -2232,6 +2346,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-auth-session-fixation
     profiles:
       - dsltv-auth-session-fixation
 
@@ -2252,6 +2367,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-auth-session-fixation
     profiles:
       - dsltv-auth-session-fixation
 
@@ -2269,6 +2385,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-auth-default-creds
     profiles:
       - dsltv-auth-default-creds
 
@@ -2289,6 +2406,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-auth-default-creds
     profiles:
       - dsltv-auth-default-creds
 
@@ -2308,6 +2426,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-http-smuggle-cl-te
     profiles:
       - dsltv-http-smuggle-cl-te
 
@@ -2328,6 +2447,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-http-smuggle-cl-te
     profiles:
       - dsltv-http-smuggle-cl-te
 
@@ -2345,6 +2465,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-http-smuggle-te-cl
     profiles:
       - dsltv-http-smuggle-te-cl
 
@@ -2365,6 +2486,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-http-smuggle-te-cl
     profiles:
       - dsltv-http-smuggle-te-cl
 
@@ -2382,6 +2504,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-http-smuggle-te-te
     profiles:
       - dsltv-http-smuggle-te-te
 
@@ -2402,6 +2525,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-http-smuggle-te-te
     profiles:
       - dsltv-http-smuggle-te-te
 
@@ -2419,6 +2543,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-http-host-reset-poison
     profiles:
       - dsltv-http-host-reset-poison
 
@@ -2439,6 +2564,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-http-host-reset-poison
     profiles:
       - dsltv-http-host-reset-poison
 
@@ -2456,6 +2582,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-http-host-routing-bypass
     profiles:
       - dsltv-http-host-routing-bypass
 
@@ -2476,6 +2603,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-http-host-routing-bypass
     profiles:
       - dsltv-http-host-routing-bypass
 
@@ -2493,6 +2621,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-http-host-cache-poison
     profiles:
       - dsltv-http-host-cache-poison
 
@@ -2513,6 +2642,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-http-host-cache-poison
     profiles:
       - dsltv-http-host-cache-poison
 
@@ -2532,6 +2662,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-api-bola
     profiles:
       - dsltv-api-bola
 
@@ -2552,6 +2683,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-api-bola
     profiles:
       - dsltv-api-bola
 
@@ -2569,6 +2701,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-api-bfla
     profiles:
       - dsltv-api-bfla
 
@@ -2589,6 +2722,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-api-bfla
     profiles:
       - dsltv-api-bfla
 
@@ -2606,6 +2740,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-api-bopla
     profiles:
       - dsltv-api-bopla
 
@@ -2626,6 +2761,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-api-bopla
     profiles:
       - dsltv-api-bopla
 
@@ -2643,6 +2779,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-api-shadow-version
     profiles:
       - dsltv-api-shadow-version
 
@@ -2663,6 +2800,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-api-shadow-version
     profiles:
       - dsltv-api-shadow-version
 
@@ -2680,6 +2818,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-api-mass-assign-esc
     profiles:
       - dsltv-api-mass-assign-esc
 
@@ -2700,6 +2839,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-api-mass-assign-esc
     profiles:
       - dsltv-api-mass-assign-esc
 
@@ -2717,6 +2857,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-api-ssrf-internal
     profiles:
       - dsltv-api-ssrf-internal
 
@@ -2737,6 +2878,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-api-ssrf-internal
     profiles:
       - dsltv-api-ssrf-internal
 
@@ -2754,6 +2896,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-api-sensitive-flow
     profiles:
       - dsltv-api-sensitive-flow
 
@@ -2774,6 +2917,7 @@ services:
       - vlh
     labels:
       811911.vlh: "1"
+      811911.profile: dsltv-api-sensitive-flow
     profiles:
       - dsltv-api-sensitive-flow
 

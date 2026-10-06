@@ -63,7 +63,8 @@ tui/
 ├── internal/dockerops/          Docker SDK wrapper + compose CLI orchestration
 ├── internal/collector/          /internal/activity NDJSON poller (2s timeout)
 ├── internal/exporter/           NDJSON + CSV writers
-└── internal/ui/                 bubbletea model: app (state machine), status, logs,
+└── internal/ui/                 bubbletea model: app (state machine), status, urls
+                                 (copyable play URLs + /etc/hosts hint), logs,
                                  activity, export, help, lipgloss styles
 ```
 
@@ -121,6 +122,29 @@ see below), then naming conventions: DSLTV services are `<slug>-app` /
 `<slug>-edge` (CONTRACT §7); ASLV profiles additionally match by their unique
 ports (18021–18026). All 54 DSLTV subclasses share port 8119, so DSLTV relies
 on labels/names, never on the port alone.
+
+### Play URLs (no port guessing)
+
+The Status view prints the entry points of every running profile under the
+table, and the deploy confirmation prints the first one before you commit:
+
+```
+active: full
+play  http://aslv.lab:18024/
+      http://victim.aslv.lab:18024/  http://attacker.aslv.lab:18024/
+      …
+!     client.aslv.lab not in /etc/hosts — run ./installer.sh --hosts (needs sudo)
+```
+
+- The **port comes from the container that publishes it** (config/manifest port
+  only as fallback), so an FR-11 remap via `docker-compose.override.yml` shows
+  up as the real port instead of the documented one.
+- The **vhosts are the ones the gateway / module sidecars actually route** for
+  that profile, restricted to names a host browser can resolve (localhost plus
+  what `installer.sh` writes to `/etc/hosts`) — wildcard `*.aslv.lab` tenant
+  subdomains are left out because `/etc/hosts` cannot express them.
+- Hosts found in neither the file nor `localhost` are listed in a red hint line
+  (`/etc/hosts` is re-read at most every 5 s).
 
 ## Config file
 
